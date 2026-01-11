@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecondMind - Hub d'Interaction</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        /* --- RESET & GLOBAL --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden; /* Important pour le layout sidebar */
+            display: flex;
+        }
+
+        /* --- 1. SIDEBAR (Gestion Conversations) --- */
+        .sidebar {
+            width: 280px;
+            background: #151520;
+            border-right: 1px solid rgba(58, 58, 106, 0.5);
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .sidebar-header {
+            margin-bottom: 20px;
+        }
+
+        .new-chat-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .new-chat-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .conversations-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .conversations-list::-webkit-scrollbar { width: 5px; }
+        .conversations-list::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 4px; }
+
+        .conversation-item {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .conversation-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #667eea;
+        }
+
+        .conversation-item.active {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+
+        .conversation-title {
+            font-size: 0.9em;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #e0e0e0;
+        }
+
+        .conversation-date {
+            font-size: 0.75em;
+            color: #88c0d0;
+            margin-top: 4px;
+        }
+        .conversation-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        /* Conteneur pour grouper les boutons */
+        .conv-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .edit-btn, .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 2px 5px;
+
+            /* 🛑 AVANT : opacity: 0; (Les boutons reçoivent quand même les clics !) */
+            /* ✅ APRÈS : Utiliser visibility pour que le bouton n'existe pas pour la souris quand caché */
+            opacity: 0;
+            visibility: hidden;
+
+            transition: all 0.2s;
+            font-size: 1.1em;
+        }
+
+        .conversation-item:hover .edit-btn,
+        .conversation-item:hover .delete-btn {
+            opacity: 1;
+            visibility: visible; /* Ils réapparaissent au survol */
+        }
+
+        .edit-btn:hover { color: #88c0d0; }       /* Bleu au survol */
+        .delete-btn:hover { color: #bf616a; }     /* Rouge au survol */
+
+        .title-input {
+            background: #1a1a1a;
+            border: 1px solid #667eea;
+            color: #e0e0e0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            width: 100%;
+        }
+        /* --- 2. CONTENU PRINCIPAL --- */
+        .main-content {
+            flex: 1;
+            height: 100%;
+            overflow-y: auto; /* Le scroll se fait ici */
+            background: linear-gradient(135deg, #1a1a2e 0%, #2a2a4a 100%);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 100%;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* --- STYLES ORIGINAUX (Interface Chat) --- */
+        h1 {
+            text-align: center;
+            color: #88c0d0;
+            margin: 0;
+            font-size: 2em;
+            text-shadow: 0 0 8px rgba(136, 192, 208, 0.4);
+        }
+
+        h2 {
+            color: #a3be8c;
+            margin: 0 0 10px 0;
+            font-size: 1.3em;
+            border-bottom: 2px solid #4c566a;
+            padding-bottom: 8px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(46, 52, 64, 0.6);
+            border-radius: 10px;
+        }
+
+        .audio-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: #3b4252;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .audio-toggle:hover { background: #434c5e; }
+
+        .status-panel {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .status-card {
+            flex: 1;
+            max-width: 300px;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            background: #3b4252;
+            color: #d8dee9;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .status-checking { background: linear-gradient(45deg, #ebcb8b, #d08770); color: #2e3440; }
+        .status-ok { background: linear-gradient(45deg, #a3be8c, #8fbcbb); color: #2e3440; }
+        .status-error { background: linear-gradient(45deg, #bf616a, #d08770); color: white; }
+
+        /* Zone de Chat */
+        .chat-section {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 300px;
+            gap: 10px;
+            resize: none;
+        } /* <--- IL FAUT FERMER L'ACCOLADE ICI */
+
+        /* 2. Ensuite, on met les règles du mode plein écran À L'EXTÉRIEUR */
+        body.fullscreen-mode .sidebar { display: none !important; }
+        body.fullscreen-mode .bottom-sections { display: none !important; }
+        body.fullscreen-mode .header { display: none !important; }
+        body.fullscreen-mode .status-panel { display: none !important; }
+
+        body.fullscreen-mode .main-content {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 999;
+        }
+        body.fullscreen-mode .main-container {
+            padding: 0 !important;
+            max-width: 100% !important;
+            height: 100%;
+        }
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #4c566a;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #2e3440;
+        }
+
+        .chat-window {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: #232730;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .chat-message {
+            padding: 12px 18px;
+            border-radius: 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        .chat-message.user {
+            background: linear-gradient(45deg, #5e81ac, #81a1c1);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 2px;
+        }
+
+        .chat-message.bot {
+            background: #3b4252;
+            color: #e5e9f0;
+            margin-right: auto;
+            border-bottom-left-radius: 2px;
+            border: 1px solid #4c566a;
+        }
+
+        /* Markdown Styles */
+        .chat-message.bot code { background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; color: #a3be8c; font-family: 'Consolas', monospace; }
+        .chat-message.bot pre { background: #1a1a20; padding: 12px; border-radius: 8px; overflow-x: auto; border: 1px solid #4c566a; margin: 10px 0; }
+        .chat-message.bot h3 { color: #88c0d0; margin-top: 0; }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            border-top: 1px solid #4c566a;
+            background: #2e3440;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #4c566a;
+            border-radius: 20px;
+            font-size: 1em;
+            background: #2e3440;
+            color: #eceff4;
+            transition: border-color 0.2s ease;
+
+            /* --- LES LIGNES IMPORTANTES --- */
+            resize: vertical; /* Réactive le redimensionnement manuel */
+            min-height: 50px;
+            max-height: 400px; /* Limite pour ne pas casser la page */
+            font-family: inherit;
+        }
+        .chat-input:focus { outline: none; border-color: #88c0d0; }
+
+        .send-button {
+            padding: 0 25px;
+            height: 50px;
+            background: linear-gradient(45deg, #5e81ac, #81a1c1);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .send-button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+
+        /* Boutons mode & Audio */
+        .mode-button { padding: 0 15px; height: 50px; background: #2e3440; border: 1px solid #4c566a; color: #d8dee9; border-radius: 10px; cursor: pointer; }
+        .mode-button:hover { border-color: #88c0d0; }
+        .mode-button.active { background: linear-gradient(45deg, #88c0d0, #8fbcbb); border-color: #88c0d0; color: white; }
+        .record-button { width: 50px; height: 50px; border-radius: 50%; border: none; background: #4c566a; color: white; cursor: pointer; font-size: 1.2em; display:flex; align-items:center; justify-content:center; }
+
+        /* SLOTS & FEEDBACK */
+        .bottom-sections { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+        .section { background: rgba(46, 52, 64, 0.6); padding: 15px; border-radius: 10px; border: 1px solid #4c566a; }
+
+        .feedback-section { display: flex; gap: 15px; }
+        .feedback-input { flex: 1; padding: 10px; border-radius: 8px; background: #2e3440; border: 1px solid #4c566a; color: white; }
+
+        .context-slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-top: 15px; }
+        .slot { background: #2e3440; padding: 15px; border-radius: 10px; border: 1px solid #4c566a; }
+        .slot-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .slot-title { color: #88c0d0; font-weight: bold; }
+        .slot-info { color: #a3be8c; font-size: 0.8em; margin-left: 5px; }
+
+        .slot textarea { width: 100%; min-height: 100px; background: #1a1a20; color: white; border: 1px solid #4c566a; padding: 8px; border-radius: 5px; font-family: 'Consolas', monospace; resize: vertical; }
+
+        .slot-actions { margin-top: 10px; display: flex; gap: 5px; }
+        .slot-actions button { padding: 5px 10px; border-radius: 5px; border: none; cursor: pointer; color: white; font-size: 0.85em; }
+
+        .btn-info { background: #5e81ac; }
+        .btn-primary { background: #88c0d0; color: #2e3440; }
+        .btn-success { background: #a3be8c; color: #2e3440; }
+        .btn-danger { background: #bf616a; }
+
+        /* Switch */
+        .toggle-switch input { display: none; }
+        .switch { position: relative; width: 40px; height: 20px; background: #4c566a; border-radius: 20px; display: inline-block; cursor: pointer; vertical-align: middle; }
+        .switch::after { content: ''; position: absolute; width: 16px; height: 16px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; }
+        .toggle-switch input:checked + .switch { background: #a3be8c; }
+        .toggle-switch input:checked + .switch::after { transform: translateX(20px); }
+
+        .toast { position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 10px; color: white; font-weight: bold; z-index: 1000; display: none; animation: slideIn 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <button class="new-chat-btn" onclick="startNewConversation()">
+                <span>+</span> Nouvelle conversation
+            </button>
+        </div>
+        <div class="conversations-list" id="conversationsList">
+            <div style="padding: 20px; text-align: center; color: #666;">Chargement...</div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="main-container">
+
+            <div class="header">
+                <span style="font-size: 2.5em;">🧠</span>
+                <h1>SecondMind - Hub</h1>
+            </div>
+
+            <div class="controls-bar">
+                <div class="audio-toggle" onclick="toggleAudio()">
+                    <span id="audioIcon">🔊</span>
+                    <span id="audioText">Audio: ON</span>
+                </div>
+                <button class="btn-primary" style="padding: 8px 15px; border-radius: 8px;" onclick="window.location.href='/semicode_ide'">
+                    🚀 Ouvrir IDE
+                </button>
+                <button class="btn-info" style="padding: 8px 15px; border-radius: 8px;" onclick="window.location.reload()">🔄 Refresh</button>
+                <button id="btnExpand" class="btn-success" style="margin-left:10px; padding:8px 15px; border-radius:8px;" onclick="toggleFullScreen()">
+            ⤢ Agrandir
+        </button>
+            </div>
+
+            <div class="status-panel">
+                <div id="statusSecondmind" class="status-card status-checking">
+                    <span>🔗 Secondmind</span><br>
+                    <span id="statusSecondmindText">⏳ Connexion...</span>
+                </div>
+            </div>
+
+            <div class="chat-section">
+                <h2 id="currentChatTitle">💬 Nouvelle Discussion</h2>
+                <div class="chat-container">
+                    <div id="chatWindow" class="chat-window">
+                        <div style="text-align:center; color:#666; margin-top:50px;">
+                            Commencez une discussion ou sélectionnez-en une à gauche.
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <button class="record-button" id="recordBtn" onclick="alert('Audio non dispo sur cette version')">🎤</button>
+                        <textarea id="chatInput" class="chat-input" placeholder="Tapez votre message ici..."
+                            onkeydown="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }"></textarea>
+                        <button class="mode-button" id="webBtn" onclick="toggleMode('web')">🌐 Web</button>
+                        <button class="mode-button" id="reflexionBtn" onclick="toggleMode('reflexion')">🧠 Réflexion</button>
+                        <button class="send-button" onclick="sendMessage()">Envoyer</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bottom-sections">
+                <div class="section">
+                    <h2>📊 Feedback pour Renforcement</h2>
+                    <div class="feedback-section">
+                        <input type="text" id="feedbackInput" class="feedback-input" placeholder="Ajoutez votre feedback ici...">
+                        <button class="btn-success" style="padding:10px 20px; border-radius:8px;" onclick="addFeedback()">Ajouter</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>📋 Gestion du Contexte Manuel
+                        <button class="btn-info" style="font-size:0.7em; padding:4px 8px; margin-left:10px;" onclick="document.getElementById('slotsContainer').style.display = document.getElementById('slotsContainer').style.display === 'none' ? 'grid' : 'none'">Masquer/Afficher</button>
+                        <span style="float:right; font-size:0.8em; color:#a3be8c;">Total: <span id="totalTokens">0</span> tokens</span>
+                    </h2>
+
+                    <div class="context-slots" id="slotsContainer">
+                        <div class="slot">
+                            <div class="slot-header">
+                                <span class="slot-title">Contexte Principal</span>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="slot1Active" onchange="updateTokenCount()">
+                                    <label for="slot1Active" class="switch"></label>
+                                    <span class="slot-info"><span id="slot1Tokens">0</span> tk</span>
+                                </div>
+                            </div>
+                            <textarea id="slot1" placeholder="Collez votre contexte ici..." oninput="updateTokenCount()"></textarea>
+                            <div class="slot-actions">
+                                <button class="btn-info" onclick="saveSlot(1)">💾</button>
+                                <button class="btn-primary" onclick="loadSlot(1)">📂</button>
+                                <button class="btn-success" onclick="injectSlot(1)">📤 Injecter</button>
+                            </div>
+                        </div>
+
+                        <div class="slot">
+                            <div class="slot-header">
+                                <span class="slot-title">Slot 2</span>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="slot2Active" onchange="updateTokenCount()">
+                                    <label for="slot2Active" class="switch"></label>
+                                    <span class="slot-info"><span id="slot2Tokens">0</span> tk</span>
+                                </div>
+                            </div>
+                            <textarea id="slot2" placeholder="Contexte..." oninput="updateTokenCount()"></textarea>
+                            <div class="slot-actions">
+                                <button class="btn-info" onclick="saveSlot(2)">💾</button>
+                                <button class="btn-primary" onclick="loadSlot(2)">📂</button>
+                            </div>
+                        </div>
+
+                        <div class="slot">
+                            <div class="slot-header">
+                                <span class="slot-title">Slot 3</span>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="slot3Active" onchange="updateTokenCount()">
+                                    <label for="slot3Active" class="switch"></label>
+                                    <span class="slot-info"><span id="slot3Tokens">0</span> tk</span>
+                                </div>
+                            </div>
+                            <textarea id="slot3" placeholder="Contexte..." oninput="updateTokenCount()"></textarea>
+                            <div class="slot-actions">
+                                <button class="btn-info" onclick="saveSlot(3)">💾</button>
+                                <button class="btn-primary" onclick="loadSlot(3)">📂</button>
+                            </div>
+                        </div>
+
+                        <div class="slot">
+                            <div class="slot-header">
+                                <span class="slot-title">Slot 4</span>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="slot4Active" onchange="updateTokenCount()">
+                                    <label for="slot4Active" class="switch"></label>
+                                    <span class="slot-info"><span id="slot4Tokens">0</span> tk</span>
+                                </div>
+                            </div>
+                            <textarea id="slot4" placeholder="Contexte..." oninput="updateTokenCount()"></textarea>
+                            <div class="slot-actions">
+                                <button class="btn-info" onclick="saveSlot(4)">💾</button>
+                                <button class="btn-primary" onclick="loadSlot(4)">📂</button>
+                            </div>
+                        </div>
+
+                        <div class="slot">
+                            <div class="slot-header">
+                                <span class="slot-title">Slot 5</span>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="slot5Active" onchange="updateTokenCount()">
+                                    <label for="slot5Active" class="switch"></label>
+                                    <span class="slot-info"><span id="slot5Tokens">0</span> tk</span>
+                                </div>
+                            </div>
+                            <textarea id="slot5" placeholder="Contexte..." oninput="updateTokenCount()"></textarea>
+                            <div class="slot-actions">
+                                <button class="btn-info" onclick="saveSlot(5)">💾</button>
+                                <button class="btn-primary" onclick="loadSlot(5)">📂</button>
+                            </div>
+                        </div>
+
+                        <button class="btn-danger" style="grid-column: 1 / -1;" onclick="clearAllSlots()">🗑️ Vider tous les slots</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:3000';
+        let currentConversationId = null;
+        let currentMode = 'auto';
+        let audioEnabled = true;
+
+        // --- INITIALISATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            checkConnection();
+            loadConversationsList();
+            updateTokenCount();
+        });
+
+        // --- SIDEBAR LOGIC ---
+       async function loadConversationsList() {
+            try {
+                const response = await fetch(`${API_BASE}/api/conversations`);
+                const data = await response.json();
+
+                const list = document.getElementById('conversationsList');
+                list.innerHTML = '';
+
+                data.conversations.forEach(conv => {
+                    const item = document.createElement('div');
+                    item.className = `conversation-item ${conv.id === currentConversationId ? 'active' : ''}`;
+                    item.dataset.id = conv.id;
+
+                    const date = new Date(conv.updated_at);
+                    const dateStr = date.toLocaleDateString('fr-FR', {
+                        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                    });
+
+                    // Modif ici : Ajout du bouton Supprimer (🗑️)
+                    item.innerHTML = `
+                        <div class="conversation-header">
+                            <span class="conversation-title">${conv.title}</span>
+                            <div class="conv-actions">
+                                <button class="edit-btn" onclick="event.stopPropagation(); startRename('${conv.id}', this)" title="Renommer">✏️</button>
+                                <button class="delete-btn" onclick="event.stopPropagation(); deleteConversation('${conv.id}')" title="Supprimer">🗑️</button>
+                            </div>
+                        </div>
+                        <div class="conversation-date">${dateStr}</div>
+                    `;
+
+                    item.onclick = () => openConversation(conv.id);
+                    list.appendChild(item);
+                });
+            } catch (e) {
+                console.error("Erreur chargement conversations:", e);
+            }
+        }
+
+        async function startNewConversation() {
+            currentConversationId = null;
+            document.getElementById('chatWindow').innerHTML = '<div style="text-align:center; color:#666; margin-top:50px;">Nouvelle conversation prête.</div>';
+            document.getElementById('currentChatTitle').textContent = "💬 Nouvelle Discussion";
+            loadConversationsList(); // Update UI active state
+        }
+
+        async function openConversation(convId) {
+            try {
+                // Ajout d'un feedback visuel immédiat (optionnel mais utile)
+                // document.getElementById('chatWindow').innerHTML = '<div style="text-align:center;color:#666;margin-top:50px;">Chargement...</div>';
+
+                const response = await fetch(`${API_BASE}/api/conversations/${convId}`);
+                const conversation = await response.json();
+
+                // 🛑 CORRECTION : Gérer l'erreur explicitement au lieu de "return" silencieux
+                if (conversation.error) {
+                    showToast(`Erreur : ${conversation.error}`, 'status-error');
+                    console.error("Conversation introuvable ou corrompue:", convId);
+
+                    // Optionnel : Marquer visuellement l'item comme cassé dans la liste
+                    const item = document.querySelector(`.conversation-item[data-id="${convId}"]`);
+                    if(item) item.style.opacity = "0.5";
+
+                    return;
+                }
+
+                currentConversationId = convId;
+                document.getElementById('currentChatTitle').textContent = "💬 " + conversation.title;
+
+                const chatWindow = document.getElementById('chatWindow');
+                chatWindow.innerHTML = '';
+
+                // Vérification de sécurité si 'messages' est vide
+                const messages = conversation.messages || [];
+                if (messages.length === 0) {
+                     chatWindow.innerHTML = '<div style="text-align:center; color:#666; margin-top:50px;">Conversation vide.</div>';
+                } else {
+                    messages.forEach(msg => {
+                        addToChatWindow(msg.content, msg.role === 'user' ? 'user' : 'bot');
+                    });
+                }
+
+                loadConversationsList(); // Pour mettre à jour la surbrillance active
+
+            } catch (e) {
+                console.error("Erreur ouverture:", e);
+                showToast("Erreur technique lors de l'ouverture", "status-error");
+            }
+        }
+        // --- SEND MESSAGE (Unified Logic) ---
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // 1. UI User (visuel immédiat)
+            addToChatWindow(message, 'user');
+            input.value = '';
+
+            // 2. Préparation du contexte manuel (Slots)
+            let manualContext = "";
+            for (let i = 1; i <= 5; i++) {
+                const chk = document.getElementById(`slot${i}Active`);
+                if(chk && chk.checked) manualContext += `[Slot ${i}]: ` + document.getElementById(`slot${i}`).value + "\n";
+            }
+
+            // 3. Envoi de la commande (Mode Stateless si pas d'ID)
+            try {
+                // Si currentConversationId est null, on envoie null. Le backend saura qu'il ne faut pas sauvegarder dans une conv.
+                const payload = {
+                    prompt: message,
+                    search_mode: currentMode,
+                    manual_context: manualContext || null,
+                    conversation_id: currentConversationId // Peut être null !
+                };
+
+                const response = await fetch(`${API_BASE}/command`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let botFullResponse = '';
+                let messageElement = addToChatWindow('', 'bot');
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value);
+                    botFullResponse += chunk;
+
+                    if (typeof marked !== 'undefined') {
+                        messageElement.innerHTML = marked.parse(botFullResponse);
+                    } else {
+                        messageElement.textContent = botFullResponse;
+                    }
+                    messageElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }
+
+                // On ne recharge la liste que si on était DANS une conversation (pour mettre à jour la date)
+                if (currentConversationId) {
+                    loadConversationsList();
+                }
+
+            } catch (error) {
+                addToChatWindow('Erreur: ' + error.message, 'error');
+            }
+        }
+
+        // --- UTILS ---
+        function addToChatWindow(text, type) {
+            const chatWindow = document.getElementById('chatWindow');
+            const div = document.createElement('div');
+            div.className = `chat-message ${type}`;
+            if (type === 'bot' && typeof marked !== 'undefined') {
+                div.innerHTML = marked.parse(text);
+            } else {
+                div.textContent = text;
+            }
+            chatWindow.appendChild(div);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            return div;
+        }
+
+        async function checkConnection() {
+            try {
+                const res = await fetch(`${API_BASE}/api/status`);
+                if (res.ok) {
+                    const el = document.getElementById('statusSecondmind');
+                    el.className = 'status-card status-ok';
+                    document.getElementById('statusSecondmindText').textContent = '✅ Connecté';
+                }
+            } catch (e) {
+                const el = document.getElementById('statusSecondmind');
+                el.className = 'status-card status-error';
+                document.getElementById('statusSecondmindText').textContent = '❌ Déconnecté';
+            }
+        }
+
+        function toggleMode(mode) {
+            currentMode = currentMode === mode ? 'auto' : mode;
+            document.querySelectorAll('.mode-button').forEach(b => b.style.borderColor = '#4c566a');
+            document.querySelectorAll('.mode-button').forEach(b => b.classList.remove('active'));
+
+            if(currentMode !== 'auto') {
+                document.getElementById(mode+'Btn').classList.add('active');
+                document.getElementById(mode+'Btn').style.borderColor = '#a3be8c';
+            }
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const icon = document.getElementById('audioIcon');
+            const text = document.getElementById('audioText');
+            if(audioEnabled) {
+                icon.textContent = '🔊';
+                text.textContent = 'Audio: ON';
+            } else {
+                icon.textContent = '🔇';
+                text.textContent = 'Audio: OFF';
+            }
+        }
+        function startRename(convId, btn) {
+            const item = btn.closest('.conversation-item');
+            const titleSpan = item.querySelector('.conversation-title');
+            const currentTitle = titleSpan.textContent;
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'title-input';
+            input.value = currentTitle;
+
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') confirmRename(convId, input.value);
+                if (e.key === 'Escape') loadConversationsList();
+            };
+            input.onblur = () => confirmRename(convId, input.value);
+
+            titleSpan.replaceWith(input);
+            input.focus();
+            input.select();
+        }
+
+        async function confirmRename(convId, newTitle) {
+            if (!newTitle.trim()) {
+                loadConversationsList();
+                return;
+            }
+
+            try {
+                await fetch(`${API_BASE}/api/conversations/${convId}/rename`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: newTitle.trim() })
+                });
+                loadConversationsList();
+            } catch (e) {
+                console.error("Erreur rename:", e);
+            }
+        }
+        async function deleteConversation(convId) {
+            // 1. Confirmation de sécurité
+            if (!confirm("Voulez-vous vraiment supprimer cette conversation ? Cette action est irréversible (archivage dans _trash).")) {
+                return;
+            }
+
+            try {
+                // 2. Appel API
+                const res = await fetch(`${API_BASE}/api/conversations/${convId}`, {
+                    method: 'DELETE'
+                });
+
+                if (res.ok) {
+                    // 3. Gestion de l'interface
+                    // Si on supprime la conversation qu'on est en train de lire, on reset la vue
+                    if (currentConversationId === convId) {
+                        startNewConversation();
+                    } else {
+                        // Sinon on recharge juste la liste
+                        loadConversationsList();
+                    }
+                } else {
+                    alert("Erreur lors de la suppression.");
+                }
+            } catch (e) {
+                console.error("Erreur delete:", e);
+                alert("Erreur serveur.");
+            }
+        }
+        // Feedback & Slots Logic
+        async function addFeedback() {
+            const fb = document.getElementById('feedbackInput').value;
+            if(!fb) return;
+            try {
+                await fetch(`${API_BASE}/memoire`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({feedback: fb})
+                });
+                document.getElementById('feedbackInput').value = '';
+                showToast('Feedback envoyé', 'success');
+            } catch(e) { console.error(e); }
+        }
+
+        async function injectSlot(id) {
+            const content = document.getElementById(`slot${id}`).value;
+            if(!content) return;
+            await fetch(`${API_BASE}/memoire`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({memoire: `[Injection Slot ${id}]: ${content}`})
+            });
+            showToast(`Slot ${id} injecté`, 'success');
+        }
+
+        function saveSlot(id) {
+            localStorage.setItem(`slot${id}`, document.getElementById(`slot${id}`).value);
+            showToast('Sauvegardé localement', 'success');
+        }
+
+        function loadSlot(id) {
+            const val = localStorage.getItem(`slot${id}`) || '';
+            document.getElementById(`slot${id}`).value = val;
+            updateTokenCount();
+            showToast('Chargé', 'success');
+        }
+
+        function updateTokenCount() {
+            let total = 0;
+            for (let i = 1; i <= 5; i++) {
+                const val = document.getElementById(`slot${i}`).value;
+                const count = Math.ceil(val.length / 4); // Approx
+                document.getElementById(`slot${i}Tokens`).textContent = count;
+                if(document.getElementById(`slot${i}Active`).checked) total += count;
+            }
+            document.getElementById('totalTokens').textContent = total;
+        }
+
+        function clearAllSlots() {
+            if(!confirm('Vider tout ?')) return;
+            for(let i=1; i<=5; i++) {
+                document.getElementById(`slot${i}`).value = '';
+                document.getElementById(`slot${i}Active`).checked = false;
+            }
+            updateTokenCount();
+        }
+
+        function showToast(msg, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            toast.style.display = 'block';
+            setTimeout(() => { toast.remove(); }, 3000);
+        }
+        function toggleFullScreen() {
+            document.body.classList.toggle('fullscreen-mode');
+            const btn = document.getElementById('btnExpand');
+
+            if (document.body.classList.contains('fullscreen-mode')) {
+                btn.textContent = '↘ Réduire';
+                btn.className = 'btn-danger'; // Devient rouge
+                btn.style.position = 'fixed'; // Reste visible en haut
+                btn.style.top = '10px';
+                btn.style.right = '10px';
+                btn.style.zIndex = '1001';
+            } else {
+                btn.textContent = '⤢ Agrandir';
+                btn.className = 'btn-success'; // Redevient vert
+                btn.style.position = 'static'; // Revient dans la barre
+            }
+        }
+
+    </script>
+</body>
+</html>

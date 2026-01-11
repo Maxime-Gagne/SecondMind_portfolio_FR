@@ -1,0 +1,26 @@
+# --- Environnement Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+venv/
+.venv/
+
+# --- Données Volatiles (Mémoire & Logs) ---
+# On ignore les données réelles pour ne garder que la structure
+memoire/brute/
+memoire/vectorielle/*.faiss
+memoire/vectorielle/*.pkl
+logs/
+*.log
+
+# --- Fichiers système & IDE ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Secrets & Clés ---
+# Sécurité maximale même en dépôt privé
+secrets.yaml
+keys.txt

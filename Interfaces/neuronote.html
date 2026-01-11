@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecondMind - Bloc-notes Quantique</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e0e6ed;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        .quantum-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #6366f1;
+            margin-bottom: 2rem;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        }
+        
+        .note-item {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 8px;
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .note-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateX(5px);
+        }
+        
+        .note-item.active {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+        
+        .note-title {
+            font-weight: 600;
+            color: #e0e6ed;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+        
+        .note-preview {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            opacity: 0.8;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .note-timestamp {
+            font-size: 0.65rem;
+            color: #6366f1;
+            margin-top: 0.25rem;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(15px);
+        }
+        
+        .header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .note-title-input {
+            background: transparent;
+            border: none;
+            color: #e0e6ed;
+            font-size: 1.5rem;
+            font-weight: 600;
+            outline: none;
+            flex: 1;
+        }
+        
+        .note-title-input::placeholder {
+            color: rgba(148, 163, 184, 0.5);
+        }
+        
+        .tools {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .tool-btn {
+            padding: 0.5rem;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 6px;
+            color: #6366f1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+        
+        .tool-btn:hover {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .editor-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .editor {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #e0e6ed;
+            resize: none;
+        }
+        
+        .editor::placeholder {
+            color: rgba(148, 163, 184, 0.3);
+        }
+        
+        .quantum-cursor {
+            position: absolute;
+            width: 2px;
+            height: 20px;
+            background: linear-gradient(to bottom, #6366f1, #8b5cf6);
+            animation: quantum-pulse 1.5s infinite;
+        }
+        
+        @keyframes quantum-pulse {
+            0%, 100% { opacity: 1; transform: scaleY(1); }
+            50% { opacity: 0.3; transform: scaleY(0.8); }
+        }
+        
+        .status-bar {
+            padding: 0.75rem 1.5rem;
+            background: rgba(15, 23, 42, 0.9);
+            border-top: 1px solid rgba(99, 102, 241, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+        
+        .word-count {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .sync-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .sync-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: sync-pulse 2s infinite;
+        }
+        
+        @keyframes sync-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .new-note-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        
+        .note-actions {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            opacity: 0;
+            transition: all 0.3s ease;
+            display: flex;
+            gap: 0.25rem;
+        }
+        
+        .note-item:hover .note-actions {
+            opacity: 1;
+        }
+        
+        .note-action-btn {
+            width: 24px;
+            height: 24px;
+            background: rgba(239, 68, 68, 0.8);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .note-action-btn:hover {
+            background: rgba(239, 68, 68, 1);
+            transform: scale(1.1);
+        }
+        
+        .storage-info {
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            border: 1px solid rgba(99, 102, 241, 0.1);
+        }
+        
+        .storage-title {
+            color: #6366f1;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .storage-details {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            line-height: 1.4;
+        }
+        
+        .export-btn {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #10b981;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+        }
+        
+        .export-btn:hover {
+            background: rgba(16, 185, 129, 0.3);
+            border-color: rgba(16, 185, 129, 0.6);
+        }
+        
+        .ai-panel {
+            position: fixed;
+            right: -300px;
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(99, 102, 241, 0.2);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            padding: 1.5rem;
+        }
+        
+        .ai-panel.open {
+            right: 0;
+        }
+        
+        .ai-toggle {
+            position: fixed;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6366f1;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+        
+        .ai-toggle:hover {
+            background: rgba(99, 102, 241, 0.3);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .thinking-animation {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .thinking-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #6366f1;
+            animation: thinking 1.4s infinite;
+        }
+        
+        .thinking-dot:nth-child(2) { animation-delay: 0.2s; }
+        .thinking-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes thinking {
+            0%, 60%, 100% { transform: scale(1); opacity: 1; }
+            30% { transform: scale(1.3); opacity: 0.7; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: fixed;
+                left: -100%;
+                z-index: 1000;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.open {
+                left: 0;
+            }
+            
+            .container {
+                flex-direction: column;
+            }
+            
+            .main-content {
+                width: 100%;
+            }
+        }
+
+        /* Style pour l'activation visuelle */
+        body.activated .quantum-bg canvas {
+            animation: bg-pulse 1.5s ease-out;
+        }
+
+        @keyframes bg-pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.02); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <canvas class="quantum-bg"></canvas>
+    
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">⚛️ SecondMind</div>
+            <button class="new-note-btn" onclick="createNewNote()">+ Nouvelle Note</button>
+            <div class="notes-list" id="notesList"></div>
+            
+            <div class="storage-info">
+                <div class="storage-title">💾 Sauvegarde</div>
+                <div class="storage-details">
+                    Notes stockées localement dans votre navigateur.<br>
+                    <span id="notesCount">0</span> notes • <span id="storageSize">0 KB</span>
+                </div>
+                <button class="export-btn" onclick="exportNotes()">📥 Exporter les notes</button>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <input type="text" class="note-title-input" id="noteTitle" placeholder="Titre de la note..." />
+                <div class="tools">
+                    <button class="tool-btn" onclick="formatText('bold')">B</button>
+                    <button class="tool-btn" onclick="formatText('italic')">I</button>
+                    <button class="tool-btn" onclick="insertTimestamp()">📅</button>
+                    <button class="tool-btn" onclick="toggleFullscreen()">⛶</button>
+                </div>
+            </div>
+            
+            <div class="editor-container">
+                <textarea class="editor" id="noteEditor" placeholder="Vos pensées prennent forme ici...
+                
+• Tapez naturellement
+• Organisez vos idées
+• Laissez votre créativité s'exprimer
+• L'IA vous accompagne dans votre réflexion
+
+Commencez à écrire..."></textarea>
+            </div>
+            
+            <div class="status-bar">
+                <div class="word-count" id="wordCount">0 mots</div>
+                <div class="sync-indicator">
+                    <div class="sync-dot"></div>
+                    <span>Synchronisé</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="ai-toggle" onclick="toggleAI()">🧠</div>
+    
+    <div class="ai-panel" id="aiPanel">
+        <h3 style="color: #6366f1; margin-bottom: 1rem;">Assistant IA</h3>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <button class="tool-btn" onclick="aiAnalyze()">🔍 Analyser</button>
+            <button class="tool-btn" onclick="aiSummarize()">📝 Résumer</button>
+            <button class="tool-btn" onclick="aiExpand()">🌟 Développer</button>
+            <button class="tool-btn" onclick="aiQuestion()">❓ Questionner</button>
+        </div>
+        <div id="aiResponse" style="margin-top: 1rem; padding: 1rem; background: rgba(30, 41, 59, 0.6); border-radius: 8px; min-height: 100px; display: none;"></div>
+    </div>
+
+    <script>
+        // Variables globales
+        let notes = [];
+        let currentNoteId = null;
+        let scene, camera, renderer, particles = [];
+        let autoSaveTimeout;
+        
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            initQuantumBackground();
+            loadNotes();
+            initEventListeners();
+            if (notes.length === 0) {
+                createNewNote();
+            }
+        });
+        
+        // Background quantique avec Three.js
+        function initQuantumBackground() {
+            const canvas = document.querySelector('.quantum-bg');
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 0);
+            
+            // Créer des particules quantiques
+            const particleCount = 200;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            
+            for (let i = 0; i < particleCount; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 50;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 50;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 50;
+                
+                colors[i * 3] = 0.4 + Math.random() * 0.3;
+                colors[i * 3 + 1] = 0.4 + Math.random() * 0.4;
+                colors[i * 3 + 2] = 0.9 + Math.random() * 0.1;
+            }
+            
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            
+            const material = new THREE.PointsMaterial({
+                size: 0.1,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.6
+            });
+            
+            const particleSystem = new THREE.Points(geometry, material);
+            scene.add(particleSystem);
+            
+            camera.position.z = 30;
+            
+            // Animation
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                particleSystem.rotation.x += 0.001;
+                particleSystem.rotation.y += 0.002;
+                
+                renderer.render(scene, camera);
+            }
+            animate();
+            
+            // Responsive
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+        
+        // Gestion des notes
+        function createNewNote() {
+            const newNote = {
+                id: Date.now(),
+                title: '',
+                content: '',
+                created: new Date().toISOString(),
+                modified: new Date().toISOString()
+            };
+            
+            notes.unshift(newNote);
+            selectNote(newNote.id);
+            renderNotesList();
+            document.getElementById('noteTitle').focus();
+        }
+        
+        function selectNote(noteId) {
+            const note = notes.find(n => n.id === noteId);
+            if (!note) return;
+            
+            currentNoteId = noteId;
+            document.getElementById('noteTitle').value = note.title;
+            document.getElementById('noteEditor').value = note.content;
+            updateWordCount();
+            renderNotesList();
+        }
+        
+        function renderNotesList() {
+            const notesList = document.getElementById('notesList');
+            notesList.innerHTML = '';
+            
+            notes.forEach((note, index) => {
+                const noteItem = document.createElement('div');
+                noteItem.className = `note-item ${note.id === currentNoteId ? 'active' : ''}`;
+                noteItem.onclick = (e) => {
+                    if (!e.target.closest('.note-actions')) {
+                        selectNote(note.id);
+                    }
+                };
+                
+                const title = note.title || 'Sans titre';
+                const preview = note.content.substring(0, 50) + (note.content.length > 50 ? '...' : '');
+                const timestamp = new Date(note.modified).toLocaleDateString('fr-FR');
+                
+                noteItem.innerHTML = `
+                    <div class="note-actions">
+                        <button class="note-action-btn" onclick="deleteNote(${note.id})" title="Supprimer">🗑️</button>
+                    </div>
+                    <div class="note-title">${title}</div>
+                    <div class="note-preview">${preview}</div>
+                    <div class="note-timestamp">${timestamp}</div>
+                `;
+                
+                notesList.appendChild(noteItem);
+            });
+            
+            updateStorageInfo();
+        }
+        
+        function deleteNote(noteId) {
+            if (notes.length <= 1) {
+                alert('Vous ne pouvez pas supprimer la dernière note.');
+                return;
+            }
+            
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette note ?')) {
+                notes = notes.filter(n => n.id !== noteId);
+                
+                if (currentNoteId === noteId) {
+                    selectNote(notes[0].id);
+                }
+                
+                saveCurrentNote();
+                renderNotesList();
+            }
+        }
+        
+        function updateStorageInfo() {
+            const notesCount = notes.length;
+            const storageSize = Math.round(JSON.stringify(notes).length / 1024);
+            
+            document.getElementById('notesCount').textContent = notesCount;
+            document.getElementById('storageSize').textContent = storageSize;
+        }
+        
+        function exportNotes() {
+            const dataStr = JSON.stringify(notes, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `SecondMind_Notes_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function saveCurrentNote() {
+            if (!currentNoteId) return;
+            
+            const note = notes.find(n => n.id === currentNoteId);
+            if (!note) return;
+            
+            note.title = document.getElementById('noteTitle').value;
+            note.content = document.getElementById('noteEditor').value;
+            note.modified = new Date().toISOString();
+            
+            localStorage.setItem('secondMindNotes', JSON.stringify(notes));
+            renderNotesList();
+        }
+        
+        function loadNotes() {
+            const saved = localStorage.getItem('secondMindNotes');
+            if (saved) {
+                notes = JSON.parse(saved);
+                renderNotesList();
+                if (notes.length > 0) {
+                    selectNote(notes[0].id);
+                }
+            }
+            updateStorageInfo();
+        }
+        
+        function autoSave() {
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(saveCurrentNote, 1000);
+        }
+        
+        function updateWordCount() {
+            const text = document.getElementById('noteEditor').value;
+            const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
+            document.getElementById('wordCount').textContent = `${wordCount} mots`;
+        }
+        
+        // Event listeners
+        function initEventListeners() {
+            document.getElementById('noteTitle').addEventListener('input', autoSave);
+            document.getElementById('noteEditor').addEventListener('input', () => {
+                updateWordCount();
+                autoSave();
+            });
+            
+            // Raccourcis clavier
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 'n':
+                            e.preventDefault();
+                            createNewNote();
+                            break;
+                        case 's':
+                            e.preventDefault();
+                            saveCurrentNote();
+                            break;
+                    }
+                }
+            });
+        }
+        
+        // Fonctions utilitaires
+        function formatText(format) {
+            const editor = document.getElementById('noteEditor');
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const text = editor.value;
+            const selectedText = text.substring(start, end);
+            
+            let formattedText = '';
+            switch(format) {
+                case 'bold':
+                    formattedText = `**${selectedText}**`;
+                    break;
+                case 'italic':
+                    formattedText = `*${selectedText}*`;
+                    break;
+            }
+            
+            editor.value = text.substring(0, start) + formattedText + text.substring(end);
+            editor.focus();
+            editor.setSelectionRange(start + formattedText.length, start + formattedText.length);
+            autoSave();
+        }
+        
+        function insertTimestamp() {
+            const editor = document.getElementById('noteEditor');
+            const timestamp = new Date().toLocaleString('fr-FR');
+            const position = editor.selectionStart;
+            const text = editor.value;
+            
+            editor.value = text.substring(0, position) + `[${timestamp}] ` + text.substring(position);
+            editor.focus();
+            editor.setSelectionRange(position + timestamp.length + 3, position + timestamp.length + 3);
+            autoSave();
+        }
+        
+        function toggleFullscreen() {
+            const container = document.querySelector('.container');
+            const sidebar = document.querySelector('.sidebar');
+            
+            if (sidebar.style.display === 'none') {
+                sidebar.style.display = 'flex';
+            } else {
+                sidebar.style.display = 'none';
+            }
+        }
+        
+        // Fonctions IA (simulation)
+        function toggleAI() {
+            const panel = document.getElementById('aiPanel');
+            panel.classList.toggle('open');
+        }
+        
+        function showThinking() {
+            const response = document.getElementById('aiResponse');
+            response.style.display = 'block';
+            response.innerHTML = '<div class="thinking-animation"><div class="thinking-dot"></div><div class="thinking-dot"></div><div class="thinking-dot"></div><span style="margin-left: 10px;">Réflexion en cours...</span></div>';
+        }
+        
+        function aiAnalyze() {
+            const content = document.getElementById('noteEditor').value;
+            if (!content.trim()) return;
+            
+            showThinking();
+            
+            setTimeout(() => {
+                const response = document.getElementById('aiResponse');
+                response.innerHTML = `
+                    <div class="fade-in">
+                        <h4 style="color: #6366f1; margin-bottom: 0.5rem;">🔍 Analyse</h4>
+                        <p style="margin-bottom: 0.5rem;">Longueur: ${content.length} caractères</p>
+                        <p style="margin-bottom: 0.5rem;">Complexité: ${content.split('.').length > 10 ? 'Élevée' : 'Modérée'}</p>
+                        <p>Ton: ${content.includes('!') ? 'Énergique' : 'Neutre'}</p>
+                    </div>
+                `;
+            }, 1500);
+        }
+        
+        function aiSummarize() {
+            const content = document.getElementById('noteEditor').value;
+            if (!content.trim()) return;
+            
+            showThinking();
+            
+            setTimeout(() => {
+                const response = document.getElementById('aiResponse');
+                response.innerHTML = `
+                    <div class="fade-in">
+                        <h4 style="color: #6366f1; margin-bottom: 0.5rem;">📝 Résumé</h4>
+                        <p>Votre texte aborde ${content.split(' ').length > 100 ? 'plusieurs concepts complexes' : 'des idées claires'} avec une approche ${content.includes('?') ? 'interrogative' : 'affirmative'}.</p>
+                        <p style="margin-top: 0.5rem;">Points clés identifiés: ${Math.min(3, content.split('\n').length)} sections principales.</p>
+                    </div>
+                `;
+            }, 2000);
+        }
+        
+        function aiExpand() {
+            const content = document.getElementById('noteEditor').value;
+            if (!content.trim()) return;
+            
+            showThinking();
+            
+            setTimeout(() => {
+                const response = document.getElementById('aiResponse');
+                response.innerHTML = `
+                    <div class="fade-in">
+                        <h4 style="color: #6366f1; margin-bottom: 0.5rem;">🌟 Développement</h4>
+                        <p>Suggestions d'expansion:</p>
+                        <ul style="margin-top: 0.5rem; padding-left: 1rem;">
+                            <li>Explorez les implications pratiques</li>
+                            <li>Ajoutez des exemples concrets</li>
+                            <li>Considérez les perspectives alternatives</li>
+                            <li>Développez les connexions entre les idées</li>
+                        </ul>
+                    </div>
+                `;
+            }, 1800);
+        }
+        
+        function aiQuestion() {
+            showThinking();
+            
+            setTimeout(() => {
+                const response = document.getElementById('aiResponse');
+                const questions = [
+                    "Quelles sont les implications de cette idée?",
+                    "Comment pourriez-vous appliquer cela concrètement?",
+                    "Quels sont les obstacles potentiels?",
+                    "Qu'est-ce qui vous a inspiré cette réflexion?",
+                    "Comment cela s'inscrit-il dans votre vision globale?"
+                ];
+                
+                const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
+                
+                response.innerHTML = `
+                    <div class="fade-in">
+                        <h4 style="color: #6366f1; margin-bottom: 0.5rem;">❓ Question</h4>
+                        <p style="font-style: italic; color: #8b5cf6;">${randomQuestion}</p>
+                        <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #94a3b8;">Cette question peut vous aider à approfondir votre réflexion.</p>
+                    </div>
+                `;
+            }, 1200);
+        }
+
+        // Fonction d'activation visuelle pour cette page
+        function activate() {
+            const body = document.body;
+            body.classList.add('activated');
+            
+            setTimeout(() => {
+                body.classList.remove('activated');
+            }, 1500); // Durée de l'animation 'bg-pulse'
+        }
+
+        // Écouteur de messages pour activer la visualisation depuis le hub
+        window.addEventListener('message', (event) => {
+            // Vérifier l'origine de l'événement pour la sécurité en production
+            // if (event.origin !== "http://your-trusted-origin.com") return;
+
+            if (event.data && event.data.type === 'activate_visual_effect') {
+                activate();
+            }
+        });
+
+        // Activation initiale si la page est ouverte directement ou pour un effet de démarrage
+        document.addEventListener('DOMContentLoaded', () => {
+            // Optionnel: Déclencher une activation au chargement si désiré, sinon commenter
+            // activate(); 
+        });
+    </script>
+</body>
+</html>

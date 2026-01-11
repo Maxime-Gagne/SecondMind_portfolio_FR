@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecondMind - Hub de Formation</title>
+    <style>
+        /* ... (Les styles restent inchangés) ... */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #2c2f33;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .status-container {
+            background-color: #23272a;
+            border-radius: 12px;
+            padding: 15px;
+            width: 90%;
+            max-width: 1200px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            border: 1px solid #3c4044;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .backend-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-online {
+            background-color: #4CAF50;
+        }
+
+        .status-offline {
+            background-color: #F44336;
+        }
+
+        .status-connecting {
+            background-color: #FFC107;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        h1 {
+            color: #7289da;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(114, 137, 218, 0.5);
+        }
+
+        .training-buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            width: 90%;
+            max-width: 1200px;
+            margin-bottom: 30px;
+            padding: 25px;
+            background-color: #23272a;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            border: 1px solid #3c4044;
+        }
+
+        .training-button {
+            background-color: #7289da;
+            color: white;
+            padding: 20px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .training-button:hover {
+            background-color: #677bc4;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .training-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .button-icon {
+            font-size: 2em;
+        }
+
+        .module-container {
+            background-color: #36393f;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            width: 90%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            border: 1px solid #4a4d52;
+        }
+
+        .info-text {
+            color: #99aab5;
+            text-align: center;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        /* Style pour l'iframe caché */
+        #backendFrame {
+            display: none;
+            width: 0;
+            height: 0;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧠 SecondMind : Hub Central</h1>
+
+    <div class="status-container">
+        <div class="backend-status">
+            <span class="status-indicator status-connecting" id="backendStatus"></span>
+            <span>Backend SecondMind : <span id="backendStatusText">Connexion...</span></span>
+        </div>
+        <div>
+            <span id="connectionTime" style="color: #99aab5; font-size: 0.9em;"></span>
+        </div>
+    </div>
+
+    <div class="training-buttons-grid">
+    <button class="training-button" onclick="openModule('formation')">
+        <span class="button-icon">🎓</span>
+        <span>Formation SecondMind</span>
+    </button>
+
+    <button class="training-button" onclick="openModule('benchmark_lab_dual')">
+        <span class="button-icon">🔬</span>
+        <span>Dual LLM Benchmark Lab</span>
+    </button>
+
+    <button class="training-button" onclick="openModule('prompt_viewer')">
+        <span class="button-icon">🧬</span>
+        <span>Prompt Viewer</span>
+    </button>
+
+    <button class="training-button" onclick="openModule('exploration')">
+        <span class="button-icon">🔍</span>
+        <span>Interface d'Exploration</span>
+    </button>
+
+    <button class="training-button" onclick="openModule('semicode')">
+        <span class="button-icon">💻</span>
+        <span>SemiCode IDE</span>
+    </button>
+
+    <button class="training-button" onclick="openModule('neuronote')">
+        <span class="button-icon">📝</span>
+        <span>NeuroNote</span>
+    </button>
+
+</div>
+
+<div class="module-container">
+    <h2 style="color: #99aab5; text-align: center;">État du Système</h2>
+    <div id="systemInfo" style="padding: 20px;">
+        <div class="info-text">
+            <p>🚀 Modules actifs : <span id="activeModules">0</span></p>
+            <p>💾 Mémoire utilisée : <span id="memoryUsage">Calcul en cours...</span></p>
+            <p>⏰ Temps de fonctionnement : <span id="uptime">00:00:00</span></p>
+        </div>
+    </div>
+</div>
+
+    <iframe id="backendFrame" src=""></iframe>
+
+    <script>
+        // Configuration des modules
+        const modules = {
+            formation: {
+                url: 'formation_secondmind.html',
+                window: null,
+                name: 'Formation SecondMind'
+            },
+            benchmark_lab_dual: {
+                url: 'benchmark_dual_llm.html',
+                window: null,
+                name: 'Dual LLM Benchmark Lab'
+            },
+            prompt_viewer: {
+                url: 'prompt_viewer.html',
+                window: null,
+                name: 'Prompt Viewer'
+            },
+            exploration: {
+                url: 'http://127.0.0.1:3000/interface_exploration',
+                window: null,
+                name: 'Interface Exploration'
+            },
+            semicode: {
+                url: 'semicode_ide.html',
+                window: null,
+                name: 'SemiCode IDE'
+            },
+            neuronote: {
+                url: 'neuronote.html',
+                window: null,
+                name: 'NeuroNote'
+            },
+        };
+
+        let startTime = Date.now();
+        let backendConnected = false;
+        let activeModulesCount = 0;
+
+        // Fonction pour lancer le backend
+        async function startBackend() {
+            console.log('🚀 Tentative de connexion au backend...');
+            
+            try {
+                // Essayer de contacter le backend
+                const response = await fetch('http://127.0.0.1:3000/api/status', {
+                    method: 'GET',
+                    mode: 'cors'
+                }).catch(() => null);
+
+                if (response && response.ok) {
+                    setBackendStatus('online');
+                    console.log('✅ Backend déjà en cours d\'exécution');
+                    return true;
+                }
+            } catch (e) {
+                console.log('Backend non détecté, tentative de lancement...');
+            }
+
+            // Si le backend n'est pas accessible, essayer de le lancer
+            setBackendStatus('connecting');
+            
+            // Attendre un peu et vérifier à nouveau
+            let attempts = 0;
+            const maxAttempts = 30; // 30 secondes max
+            
+            const checkBackend = setInterval(async () => {
+                attempts++;
+                
+                try {
+                    const response = await fetch('http://127.0.0.1:3000/api/status', {
+                        method: 'GET',
+                        mode: 'cors'
+                    }).catch(() => null);
+
+                    if (response && response.ok) {
+                        clearInterval(checkBackend);
+                        setBackendStatus('online');
+                        console.log('✅ Backend connecté avec succès');
+                        return;
+                    }
+                } catch (e) {
+                    // Continue trying
+                }
+
+                if (attempts >= maxAttempts) {
+                    clearInterval(checkBackend);
+                    setBackendStatus('offline');
+                    console.error('❌ Impossible de connecter au backend');
+                    alert('⚠️ Le backend SecondMind n\'est pas accessible.\n\nAssurez-vous que interface_backend_hermes.py est lancé.');
+                }
+            }, 1000);
+        }
+
+        // Fonction pour mettre à jour le statut du backend
+        function setBackendStatus(status) {
+            const indicator = document.getElementById('backendStatus');
+            const text = document.getElementById('backendStatusText');
+            const timeEl = document.getElementById('connectionTime');
+            
+            indicator.className = 'status-indicator';
+            
+            switch(status) {
+                case 'online':
+                    indicator.classList.add('status-online');
+                    text.textContent = 'En ligne';
+                    backendConnected = true;
+                    timeEl.textContent = new Date().toLocaleTimeString();
+                    break;
+                case 'offline':
+                    indicator.classList.add('status-offline');
+                    text.textContent = 'Hors ligne';
+                    backendConnected = false;
+                    break;
+                case 'connecting':
+                    indicator.classList.add('status-connecting');
+                    text.textContent = 'Connexion en cours...';
+                    break;
+            }
+        }
+
+        // Fonction pour ouvrir un module
+        function openModule(moduleKey) {
+            const module = modules[moduleKey];
+            
+            if (!module) {
+                console.error('Module non trouvé:', moduleKey);
+                return;
+            }
+
+            // Vérifier si le backend est nécessaire
+            if (['exploration', 'ruleinjector'].includes(moduleKey) && !backendConnected) {
+                alert('⚠️ Le backend doit être en ligne pour accéder à ce module');
+                return;
+            }
+
+            // Ouvrir ou focus sur la fenêtre existante
+            if (!module.window || module.window.closed) {
+                module.window = window.open(
+                    module.url,
+                    moduleKey + 'Window',
+                    'width=1200,height=800,scrollbars=yes'
+                );
+                
+                if (module.window) {
+                    activeModulesCount++;
+                    updateSystemInfo();
+                    console.log(`✅ Module ouvert: ${module.name}`);
+                }
+            } else {
+                module.window.focus();
+                console.log(`🔄 Focus sur: ${module.name}`);
+            }
+        }
+
+        // Fonction pour mettre à jour les infos système
+        function updateSystemInfo() {
+            // Modules actifs
+            document.getElementById('activeModules').textContent = activeModulesCount;
+            
+            // Temps de fonctionnement
+            const uptimeMs = Date.now() - startTime;
+            const hours = Math.floor(uptimeMs / 3600000);
+            const minutes = Math.floor((uptimeMs % 3600000) / 60000);
+            const seconds = Math.floor((uptimeMs % 60000) / 1000);
+            document.getElementById('uptime').textContent = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Utilisation mémoire (simulée pour l'exemple)
+            const memUsage = (20 + activeModulesCount * 15 + Math.random() * 10).toFixed(1);
+            document.getElementById('memoryUsage').textContent = `${memUsage} MB`;
+        }
+
+        // Vérifier périodiquement les fenêtres fermées
+        setInterval(() => {
+            let closedCount = 0;
+            for (const key in modules) {
+                if (modules[key].window && modules[key].window.closed) {
+                    modules[key].window = null;
+                    closedCount++;
+                }
+            }
+            if (closedCount > 0) {
+                activeModulesCount = Math.max(0, activeModulesCount - closedCount);
+            }
+            updateSystemInfo();
+        }, 1000);
+
+        // Vérifier la connexion backend périodiquement
+        setInterval(async () => {
+            if (backendConnected) {
+                try {
+                    const response = await fetch('http://127.0.0.1:3000/api/status', {
+                        method: 'GET',
+                        mode: 'cors'
+                    }).catch(() => null);
+                    
+                    if (!response || !response.ok) {
+                        setBackendStatus('offline');
+                    }
+                } catch (e) {
+                    setBackendStatus('offline');
+                }
+            }
+        }, 5000);
+
+        // Initialisation au chargement
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🧠 Initialisation du Hub SecondMind...');
+            startBackend();
+            updateSystemInfo();
+        });
+
+        // Gestion de la fermeture de la fenêtre
+        window.addEventListener('beforeunload', () => {
+            // Fermer toutes les fenêtres ouvertes
+            for (const key in modules) {
+                if (modules[key].window && !modules[key].window.closed) {
+                    modules[key].window.close();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

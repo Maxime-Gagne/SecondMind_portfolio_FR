@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Prompt Viewer - RAW DEBUG</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: #0d1117;
+            color: #c9d1d9;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #58a6ff;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1.5rem;
+        }
+
+        /* BARRE DE STATUT AMÉLIORÉE */
+        .status-bar {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: sans-serif;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .status-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .status-label { color: #8b949e; font-size: 0.9em; margin-right: 5px; }
+        .status-value { color: #e6edf3; font-weight: bold; font-family: monospace; }
+
+        /* ✨ NOUVEAU STYLE DU MARQUEUR */
+        .badge-type {
+            background-color: #6e40c9; /* Violet GitHub */
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            border: 1px solid #8957e5;
+            box-shadow: 0 0 10px rgba(110, 64, 201, 0.4);
+            display: inline-block;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        /* RESTE DU STYLE (Inchangé) */
+        .controls { margin-top: 5px; }
+        button {
+            background: #21262d; border: 1px solid #30363d; color: #c9d1d9;
+            padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8em;
+            transition: all 0.2s;
+        }
+        button:hover { background: #30363d; border-color: #8b949e; }
+        button.active { background: #1f6feb; border-color: #1f6feb; color: white; }
+
+        .prompt-box {
+            background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
+            overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .prompt-header {
+            background: #161b22; padding: 8px 15px; border-bottom: 1px solid #30363d;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .prompt-title { color: #8b949e; font-size: 0.8em; font-weight: bold; text-transform: uppercase; }
+
+        pre {
+            padding: 20px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;
+            font-size: 14px; line-height: 1.5; color: #c9d1d9;
+        }
+
+        /* Syntax highlighting simple */
+        .hl-system { color: #ff7b72; font-weight: bold; } /* Rouge */
+        .hl-user { color: #7ee787; font-weight: bold; }   /* Vert */
+        .hl-section { color: #79c0ff; font-weight: bold; margin-top: 20px; display: block; border-bottom: 1px solid #30363d; }
+        .hl-code { color: #a5d6ff; background: rgba(56, 139, 253, 0.1); padding: 2px 4px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🔍 SecondMind Prompt Viewer</h1>
+
+        <div class="status-bar">
+            <div class="status-group">
+                <div>
+                    <span class="status-label">Mise à jour :</span>
+                    <span id="last-update" class="status-value">En attente...</span>
+                </div>
+                <div>
+                    <span class="status-label">Injecté :</span>
+                    <span id="prompt-type-badge" class="badge-type">Scan...</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="btn-auto-refresh" class="active" onclick="toggleAutoRefresh()">Auto-Refresh: ON</button>
+                <button onclick="loadPrompt()">Refresh Now</button>
+            </div>
+        </div>
+
+        <div id="content-area">
+            <div style="text-align: center; color: #8b949e; padding: 50px;">
+                Connexion au cerveau...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let autoRefresh = true;
+        let currentRawText = "";
+        let lastTimestamp = "";
+
+        function toggleAutoRefresh() {
+            autoRefresh = !autoRefresh;
+            const btn = document.getElementById('btn-auto-refresh');
+            btn.className = autoRefresh ? 'active' : '';
+            btn.textContent = `Auto-Refresh: ${autoRefresh ? 'ON' : 'OFF'}`;
+        }
+
+        async function loadPrompt() {
+            try {
+                // CORRECTION : Port 3000 (Backend Hermes) et route /api/last_prompt
+                const response = await fetch('http://localhost:3000/api/last_prompt');
+                const data = await response.json();
+
+                if (data.timestamp !== lastTimestamp) {
+                    lastTimestamp = data.timestamp;
+                    currentRawText = data.raw_prompt || "Aucune donnée";
+
+                    document.getElementById('last-update').textContent = new Date(data.timestamp).toLocaleTimeString();
+                    renderContent(currentRawText);
+                }
+            } catch (error) {
+                //console.error("Erreur fetch:", error); // Silence pour éviter spam console si serveur off
+            }
+        }
+
+        function renderContent(rawText) {
+            const container = document.getElementById('content-area');
+
+            // 1. ✨ EXTRACTION DU TYPE DE PROMPT
+            let promptType = "Inconnu / Raw";
+            let cleanText = rawText;
+
+            // Regex pour trouver la ligne injectée par Python: "#! PROMPT_TYPE: NomDuPrompt"
+            const typeMatch = rawText.match(/^#! PROMPT_TYPE: (.+)$/m);
+            if (typeMatch) {
+                promptType = typeMatch[1].trim();
+                // On retire la ligne du visualiseur pour que ce soit propre
+                cleanText = rawText.replace(typeMatch[0] + '\n', '');
+            }
+
+            // Mise à jour du badge
+            const badge = document.getElementById('prompt-type-badge');
+            badge.textContent = promptType;
+
+            // Couleur dynamique selon le type (Bonus UX)
+            if (promptType.includes("Code")) badge.style.backgroundColor = "#1f6feb"; // Bleu pour Code
+            else if (promptType.includes("Alerte") || promptType.includes("Protocole")) badge.style.backgroundColor = "#da3633"; // Rouge pour Alerte
+            else if (promptType.includes("Inspection")) badge.style.backgroundColor = "#d29922"; // Jaune pour Inspection
+            else badge.style.backgroundColor = "#6e40c9"; // Violet par défaut
+
+            // 2. Formatage Visuel du texte
+            let formattedContent = escapeHtml(cleanText);
+
+            // Highlight des sections clés (Markdown simple)
+            formattedContent = formattedContent
+                .replace(/^### (.*?)$/gm, '<span class="hl-section">$1</span>')
+                .replace(/^(Tu es .*?)$/gm, '<span class="hl-system">$1</span>') // Debut system prompt
+                .replace(/```([\s\S]*?)```/g, '<span class="hl-code">[BLOC CODE]</span>'); // Simplification visuelle optionnelle
+
+            container.innerHTML = `
+                <div class="prompt-box">
+                    <div class="prompt-header">
+                        <span class="prompt-title">Contenu du Prompt (Injecté au LLM)</span>
+                        <button onclick="copyContent(this)">Copier tout</button>
+                    </div>
+                    <pre>${formattedContent}</pre>
+                </div>
+            `;
+        }
+
+        function copyContent(btnElement) {
+            navigator.clipboard.writeText(currentRawText).then(() => {
+                const originalText = btnElement.textContent;
+                btnElement.textContent = "✅ Copié !";
+                setTimeout(() => btnElement.textContent = originalText, 2000);
+            });
+        }
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+        }
+
+        setInterval(() => { if (autoRefresh) loadPrompt(); }, 1000);
+        loadPrompt();
+    </script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+###############################################################################
+# CORE ORCHESTRATION & GOUVERNANCE
+###############################################################################
+pydantic==2.12.4          # Contrats d'interface et validation de données
+PyYAML==6.0.2             # Gestion de la configuration centralisée
+watchdog==6.0.0           # Surveillance du système de fichiers (GardienProjet)
+python-dotenv==1.1.1      # Gestion des variables d'environnement (Sécurité)
+
+###############################################################################
+# IA, INFÉRENCE & MODÈLES (Local Processing)
+###############################################################################
+# Note: Optimisé pour NVIDIA CUDA 12.1
+torch==2.3.0+cu121        # Framework de Deep Learning
+transformers==4.57.3      # Gestion des modèles de langage (HuggingFace)
+sentence-transformers==5.1.2 # Modèle SBERT pour le routage d'intention
+llama_cpp_python==0.2.77  # Inférence haute performance (GGUF)
+accelerate==1.11.0        # Optimisation des chargements de modèles
+
+###############################################################################
+# RAG (RESTORATION & SEARCH ENGINES)
+###############################################################################
+faiss-cpu==1.12.0         # Moteur de recherche vectorielle (Mémoire sémantique)
+Whoosh==2.7.4             # Indexation plein texte (RAG Technique & Documentation)
+numpy==1.26.4             # Calcul matriciel pour les embeddings
+
+###############################################################################
+# INTERFACE & RÉSEAU (Dashboard & Prompt Viewer)
+###############################################################################
+Flask==3.1.2              # Serveur backend pour les interfaces
+Flask-SocketIO==5.5.1     # Streaming temps réel des logs cognitifs
+flask-cors==6.0.1         # Gestion de la sécurité cross-origin
+beautifulsoup4==4.13.4    # Scraping documentaire (LiveDocs RAG)
+requests==2.32.4          # Requêtes HTTP système
+
+###############################################################################
+# DÉVELOPPEMENT & QUALITÉ
+###############################################################################
+scikit-learn==1.7.2       # Métriques et évaluation du classifier d'intention
+flake8==7.3.0             # Linter pour la conformité du code

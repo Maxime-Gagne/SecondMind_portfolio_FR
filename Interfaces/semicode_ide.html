@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SemiCode IDE - SecondMind Development Environment</title>
+    
+    <!-- Monaco Editor Loader -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #2a2a4a 100%);
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .ide-container {
+            display: grid;
+            grid-template-columns: 250px 1fr 350px;
+            grid-template-rows: 40px 1fr 200px;
+            height: 100vh;
+            gap: 1px;
+            background: #0d0d1a;
+        }
+
+        /* Header Bar */
+        .header-bar {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #2a2a4a, #1a1a2e);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            border-bottom: 1px solid #4c566a;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: bold;
+            color: #88c0d0;
+            margin-right: 30px;
+            text-shadow: 0 0 8px rgba(136, 192, 208, 0.4);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            margin-left: auto;
+        }
+
+        .header-btn {
+            background: rgba(136, 192, 208, 0.1);
+            border: 1px solid #88c0d0;
+            color: #88c0d0;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .header-btn:hover {
+            background: rgba(136, 192, 208, 0.2);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(136, 192, 208, 0.3);
+        }
+
+        /* File Explorer */
+        .file-explorer {
+            background: rgba(42, 42, 74, 0.9);
+            backdrop-filter: blur(5px);
+            border-right: 1px solid #4c566a;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .explorer-header {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #a3be8c;
+            margin-bottom: 10px;
+            padding: 5px;
+            border-bottom: 2px solid #4c566a;
+        }
+
+        .file-tree {
+            list-style: none;
+        }
+
+        .file-item {
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .file-item:hover {
+            background: rgba(136, 192, 208, 0.1);
+        }
+
+        .file-item.active {
+            background: linear-gradient(45deg, rgba(94, 129, 172, 0.2), rgba(129, 161, 193, 0.2));
+            color: #88c0d0;
+        }
+
+        .file-icon {
+            width: 16px;
+            text-align: center;
+        }
+
+        .folder-item {
+            font-weight: bold;
+            color: #a3be8c;
+        }
+
+        /* Editor Container */
+        .editor-container {
+            background: #2e3440;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .editor-tabs {
+            display: flex;
+            background: #3b4252;
+            border-bottom: 1px solid #4c566a;
+            overflow-x: auto;
+        }
+
+        .editor-tab {
+            padding: 8px 20px;
+            background: transparent;
+            border: none;
+            color: #d8dee9;
+            cursor: pointer;
+            border-right: 1px solid #4c566a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .editor-tab.active {
+            background: #2e3440;
+            color: #88c0d0;
+            border-bottom: 2px solid #88c0d0;
+        }
+
+        .editor-tab .close {
+            margin-left: 10px;
+            opacity: 0.5;
+            cursor: pointer;
+        }
+
+        .editor-tab .close:hover {
+            opacity: 1;
+            color: #bf616a;
+        }
+
+        #monaco-editor {
+            flex: 1;
+            width: 100%;
+        }
+
+        /* Semi Assistant */
+        .semi-assistant {
+            background: rgba(42, 42, 74, 0.9);
+            backdrop-filter: blur(5px);
+            border-left: 1px solid #4c566a;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .assistant-header {
+            padding: 10px 15px;
+            background: linear-gradient(135deg, #3b4252, #2e3440);
+            border-bottom: 1px solid #4c566a;
+            font-weight: bold;
+            color: #88c0d0;
+            text-shadow: 0 0 8px rgba(136, 192, 208, 0.4);
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-message {
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 85%;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-message.user {
+            background: linear-gradient(45deg, #5e81ac, #81a1c1);
+            align-self: flex-end;
+            color: white;
+        }
+
+        .chat-message.assistant {
+            background: linear-gradient(45deg, #b48ead, #a3be8c);
+            align-self: flex-start;
+            color: white;
+        }
+
+        .chat-message pre {
+            background: #1a1a2e;
+            padding: 8px;
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow-x: auto;
+            color: #d8dee9;
+        }
+
+        .chat-input-container {
+            padding: 10px;
+            border-top: 1px solid #4c566a;
+            display: flex;
+            gap: 10px;
+            background: #3b4252;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 10px 15px;
+            background: #2e3440;
+            border: 1px solid #4c566a;
+            color: #eceff4;
+            border-radius: 20px;
+            font-size: 1em;
+            transition: border-color 0.2s ease;
+        }
+
+        .chat-input::placeholder {
+            color: #d8dee9;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #88c0d0;
+        }
+
+        .send-btn {
+            padding: 10px 20px;
+            background: linear-gradient(45deg, #5e81ac, #81a1c1);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Terminal */
+        .terminal {
+            grid-column: 1 / -1;
+            background: #0d0d1a;
+            border-top: 1px solid #4c566a;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .terminal-tabs {
+            display: flex;
+            background: #1a1a2e;
+            padding: 5px 10px;
+            gap: 10px;
+        }
+
+        .terminal-tab {
+            padding: 5px 15px;
+            background: transparent;
+            border: none;
+            color: #d8dee9;
+            cursor: pointer;
+            font-size: 12px;
+            border-radius: 3px;
+            transition: all 0.2s;
+        }
+
+        .terminal-tab.active {
+            background: #2e3440;
+            color: #88c0d0;
+        }
+
+        .terminal-content {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .terminal-line {
+            margin: 2px 0;
+        }
+
+        .terminal-prompt {
+            color: #a3be8c;
+        }
+
+        .terminal-output {
+            color: #d8dee9;
+        }
+
+        .terminal-error {
+            color: #bf616a;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            position: fixed;
+            bottom: 220px;
+            right: 370px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .quick-action {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #88c0d0, #5e81ac);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .quick-action:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(136, 192, 208, 0.4);
+        }
+
+        .quick-action.run { background: linear-gradient(135deg, #a3be8c, #8fbcbb); }
+        .quick-action.save { background: linear-gradient(135deg, #ebcb8b, #d08770); }
+        .quick-action.validate { background: linear-gradient(135deg, #b48ead, #a3be8c); }
+
+        /* Loading Spinner */
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #4c566a;
+            border-top: 3px solid #88c0d0;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .toast.success {
+            background: linear-gradient(45deg, #a3be8c, #8fbcbb);
+        }
+
+        .toast.error {
+            background: linear-gradient(45deg, #bf616a, #d08770);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        /* Code Highlighting in Chat */
+        .code-block {
+            position: relative;
+            margin: 10px 0;
+            background: #232730; /* Plus sombre pour contraste */
+            border-radius: 8px;
+            border: 1px solid #4c566a;
+            overflow: hidden;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 10px;
+            background: #2e3440;
+            border-bottom: 1px solid #4c566a;
+            font-size: 0.8em;
+            color: #88c0d0;
+            font-family: sans-serif;
+        }
+
+        .code-content {
+            padding: 10px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+            color: #e5e9f0;
+        }
+
+        .code-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .code-btn {
+            padding: 2px 8px;
+            background: rgba(136, 192, 208, 0.1);
+            border: 1px solid #88c0d0;
+            color: #88c0d0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+
+        .code-btn:hover {
+            background: rgba(136, 192, 208, 0.3);
+            color: white;
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            padding: 10px 15px;
+            background: linear-gradient(45deg, rgba(180, 142, 173, 0.3), rgba(163, 190, 140, 0.3));
+            border-radius: 15px;
+            align-self: flex-start;
+            display: none;
+            animation: pulse 1.5s infinite;
+        }
+
+        .typing-indicator.show {
+            display: block;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="ide-container">
+        <!-- Header Bar -->
+        <div class="header-bar">
+            <div class="logo">🚀 SemiCode IDE</div>
+            <div class="header-actions">
+                <button class="header-btn" onclick="newFile()">📄 Nouveau</button>
+                <button class="header-btn" onclick="document.getElementById('fileInput').click()">📥 Importer</button>
+                <input type="file" id="fileInput" style="display: none;" accept=".py,.js,.html,.css,.json,.txt,.md" onchange="importerFichier(event)">
+                <button class="header-btn" onclick="saveFile()">💾 Sauvegarder</button>
+                <button class="header-btn" onclick="runCode()">▶️ Exécuter</button>
+                <button class="header-btn" onclick="showDependencies()">🔗 Dépendances</button>
+                <button class="header-btn" onclick="window.location.href='/formation_secondmind'">🏠 Chat</button>
+            </div>
+        </div>
+
+        <!-- File Explorer -->
+        <div class="file-explorer">
+            <div class="explorer-header">📁 EXPLORATEUR DE PROJET</div>
+            <div id="file-tree">
+                <div style="text-align: center; padding: 20px; color: #88c0d0;">
+                    Chargement...
+                </div>
+            </div>
+        </div>
+
+        <!-- Editor -->
+        <div class="editor-container">
+            <div class="editor-tabs" id="editor-tabs">
+                <button class="editor-tab active">
+                    <span class="file-icon">🐍</span>
+                    untitled.py
+                    <span class="close">×</span>
+                </button>
+            </div>
+            <div id="monaco-editor"></div>
+        </div>
+
+        <!-- Semi Assistant -->
+        <div class="semi-assistant">
+            <div class="assistant-header">
+                💬 Semi Assistant - Mode IDE
+            </div>
+            <div class="chat-container" id="chat-container">
+                <div class="chat-message assistant">
+                    Salut Maxime ! Je suis en mode IDE. Je peux :
+                    <br>• 🔧 Corriger des bugs dans ton code
+                    <br>• ⚡ Optimiser les performances
+                    <br>• ➕ Ajouter des fonctionnalités
+                    <br>• 📚 Expliquer le code sélectionné
+                    <br>• 🔍 Analyser les dépendances
+                    <br>
+                    <br>Sélectionne du code et demande-moi !
+                </div>
+            </div>
+            <div class="typing-indicator" id="typing-indicator">Semi est en train d'analyser...</div>
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chat-input" 
+                       placeholder="Demande-moi d'améliorer ton code..." 
+                       onkeypress="handleChatEnter(event)">
+                <button class="send-btn" onclick="sendChatMessage()">📤</button>
+            </div>
+        </div>
+
+        <!-- Terminal -->
+        <div class="terminal">
+            <div class="terminal-tabs">
+                <button class="terminal-tab active" onclick="switchTerminalTab('output')">Output</button>
+                <button class="terminal-tab" onclick="switchTerminalTab('problems')">Problèmes</button>
+                <button class="terminal-tab" onclick="clearTerminal()">🗑️ Effacer</button>
+            </div>
+            <div class="terminal-content" id="terminal-content">
+                <div class="terminal-line">
+                    <span class="terminal-prompt">🚀 SemiCode IDE v1.0 - Prêt</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <button class="quick-action run" title="Exécuter (F5)" onclick="runCode()">▶</button>
+        <button class="quick-action save" title="Sauvegarder (Ctrl+S)" onclick="saveFile()">💾</button>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading" id="loading" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <script>
+        // Configuration Monaco Editor
+        require.config({ 
+            paths: { 
+                'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' 
+            }
+        });
+
+        let editor;
+        let currentFile = null;
+        let openFiles = new Map();
+        let fileTree = [];
+
+        // Initialisation
+        require(['vs/editor/editor.main'], function() {
+            // Définir le thème Nord (inspiré de vos couleurs)
+            monaco.editor.defineTheme('nord-dark', {
+                base: 'vs-dark',
+                inherit: true,
+                rules: [
+                    { token: 'comment', foreground: '616e88' },
+                    { token: 'keyword', foreground: '81a1c1' },
+                    { token: 'string', foreground: 'a3be8c' },
+                    { token: 'number', foreground: 'b48ead' },
+                    { token: 'function', foreground: '88c0d0' }
+                ],
+                colors: {
+                    'editor.background': '#2e3440',
+                    'editor.foreground': '#d8dee9',
+                    'editor.lineHighlightBackground': '#3b4252',
+                    'editor.selectionBackground': '#434c5e',
+                    'editorCursor.foreground': '#88c0d0',
+                    'editorLineNumber.foreground': '#4c566a'
+                }
+            });
+
+            // Créer l'éditeur Monaco
+            editor = monaco.editor.create(document.getElementById('monaco-editor'), {
+                value: '#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n"""\nSemiCode IDE - Nouveau fichier\n"""\n\ndef main():\n    """Fonction principale"""\n    print("Hello, SecondMind!")\n\nif __name__ == "__main__":\n    main()\n',
+                language: 'python',
+                theme: 'nord-dark',
+                automaticLayout: true,
+                fontSize: 14,
+                minimap: { enabled: true },
+                scrollBeyondLastLine: false,
+                wordWrap: 'on',
+                formatOnPaste: true,
+                formatOnType: true,
+                suggestOnTriggerCharacters: true,
+                quickSuggestions: true,
+                snippetSuggestions: 'top'
+            });
+
+            // Raccourcis clavier
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, saveFile);
+            editor.addCommand(monaco.KeyCode.F5, runCode);
+
+            // Charger les fichiers du projet
+            loadFileTree();
+
+            // NOUVEAU : Synchroniser le chat avec le backend
+            syncChatHistory();
+        });
+        // Configuration du rendu Markdown personnalisé
+        const renderer = new marked.Renderer();
+
+        // Surcharge du rendu des blocs de code
+        renderer.code = function(code, language) {
+            // Nettoyage du langage (ex: "python" -> "python")
+            const lang = language || 'plaintext';
+            
+            // Encodage pour passer dans les fonctions onClick sans casser le HTML
+            // Utilise btoa pour encoder en Base64 (sûr pour le HTML)
+            const encodedCode = btoa(unescape(encodeURIComponent(code)));
+            
+            return `
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="lang-badge">📄 ${lang.toUpperCase()}</span>
+                    <div class="code-actions">
+                        <button class="code-btn" onclick="applyCode('${encodedCode}')">📝 Appliquer</button>
+                        <button class="code-btn" onclick="copyCode('${encodedCode}')">📋 Copier</button>
+                    </div>
+                </div>
+                <div class="code-content">
+                    <pre><code class="language-${lang}">${code}</code></pre>
+                </div>
+            </div>`;
+        };
+
+        // Appliquer le renderer
+        marked.setOptions({
+            renderer: renderer,
+            breaks: true, // Gère les retours à la ligne simples
+            gfm: true     // GitHub Flavored Markdown
+        });
+
+        // Charger l'arbre de fichiers
+        async function loadFileTree() {
+            try {
+                const response = await fetch('/api/list_files');
+                const data = await response.json();
+                
+                if (data.files) {
+                    fileTree = data.files;
+                    renderFileTree(data.files);
+                    addTerminalLine(`✅ ${data.total} fichiers chargés`);
+                }
+            } catch (error) {
+                console.error('Erreur chargement fichiers:', error);
+                addTerminalLine('❌ Erreur: Impossible de charger les fichiers', 'error');
+                showToast('Erreur de chargement des fichiers', 'error');
+            }
+        }
+
+        // Afficher l'arbre de fichiers
+        function renderFileTree(files) {
+            const container = document.getElementById('file-tree');
+            const tree = buildFileTreeStructure(files);
+            container.innerHTML = renderTreeHTML(tree);
+        }
+
+        // Construire la structure de l'arbre
+        function buildFileTreeStructure(files) {
+            const tree = {};
+            
+            files.forEach(file => {
+                const parts = file.path.split('/');
+                let current = tree;
+                
+                parts.forEach((part, index) => {
+                    if (index === parts.length - 1) {
+                        current[part] = file;
+                    } else {
+                        if (!current[part]) {
+                            current[part] = {};
+                        }
+                        current = current[part];
+                    }
+                });
+            });
+            
+            return tree;
+        }
+
+        // Générer le HTML de l'arbre
+        function renderTreeHTML(tree, level = 0) {
+            let html = '<ul class="file-tree" style="padding-left: ' + (level * 15) + 'px">';
+            
+            for (const [name, value] of Object.entries(tree)) {
+                if (value.path) {
+                    const size = (value.size / 1024).toFixed(1) + ' KB';
+                    html += `
+                        <li class="file-item" onclick="openFileFromTree('${value.path}')" title="${size}">
+                            <span class="file-icon">🐍</span>
+                            <span>${name}</span>
+                        </li>
+                    `;
+                } else {
+                    html += `
+                        <li class="folder-item">
+                            <span class="file-icon">📁</span>
+                            <span>${name}</span>
+                            ${renderTreeHTML(value, level + 1)}
+                        </li>
+                    `;
+                }
+            }
+            
+            html += '</ul>';
+            return html;
+        }
+
+        // Ouvrir un fichier depuis l'arbre
+        async function openFileFromTree(path) {
+            showLoading();
+            try {
+                const response = await fetch('/api/read_file', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path })
+                });
+                
+                const data = await response.json();
+                
+                if (data.content !== undefined) {
+                    editor.setValue(data.content);
+                    currentFile = path;
+                    updateEditorTab(path);
+                    addTerminalLine(`📂 Ouvert: ${path} (${data.lines} lignes)`);
+                    
+                    // Mettre à jour la sélection dans l'explorateur
+                    document.querySelectorAll('.file-item').forEach(el => {
+                        el.classList.remove('active');
+                        if (el.onclick && el.onclick.toString().includes(path)) {
+                            el.classList.add('active');
+                        }
+                    });
+                } else if (data.error) {
+                    showToast(`Erreur: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Erreur ouverture fichier:', error);
+                addTerminalLine(`❌ Impossible d'ouvrir ${path}`, 'error');
+                showToast('Erreur d\'ouverture du fichier', 'error');
+            }
+            hideLoading();
+        }
+
+        // Mettre à jour l'onglet de l'éditeur
+        function updateEditorTab(filename) {
+            const tabsContainer = document.getElementById('editor-tabs');
+            const name = filename.split('/').pop();
+            
+            tabsContainer.innerHTML = `
+                <button class="editor-tab active">
+                    <span class="file-icon">🐍</span>
+                    ${name}
+                    <span class="close" onclick="closeFile()">×</span>
+                </button>
+            `;
+        }
+
+        // Sauvegarder le fichier
+        async function saveFile() {
+            if (!currentFile) {
+                const path = prompt('Nom du fichier (avec chemin relatif, ex: agentique/test.py):');
+                if (!path) return;
+                currentFile = path;
+            }
+            
+            showLoading();
+            try {
+                const response = await fetch('/api/save_file', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        path: currentFile,
+                        content: editor.getValue()
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    addTerminalLine(`✅ Sauvegardé: ${currentFile}`);
+                    showToast('Fichier sauvegardé !', 'success');
+                } else {
+                    addTerminalLine(`❌ Erreur: ${data.error}`, 'error');
+                    showToast(`Erreur: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Erreur sauvegarde:', error);
+                addTerminalLine('❌ Sauvegarde échouée', 'error');
+                showToast('Erreur de sauvegarde', 'error');
+            }
+            hideLoading();
+        }
+
+        // Exécuter le code
+        async function runCode() {
+            showLoading();
+            clearTerminal();
+            addTerminalLine('🚀 Exécution du code Python...');
+            
+            try {
+                const response = await fetch('/api/execute_code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        code: editor.getValue()
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.stdout) {
+                    addTerminalLine('━━━ OUTPUT ━━━', 'output');
+                    data.stdout.split('\n').forEach(line => {
+                        if (line) addTerminalLine(line, 'output');
+                    });
+                }
+                
+                if (data.stderr) {
+                    addTerminalLine('━━━ ERREURS ━━━', 'error');
+                    data.stderr.split('\n').forEach(line => {
+                        if (line) addTerminalLine(line, 'error');
+                    });
+                }
+                
+                const status = data.returncode === 0 ? '✅ Succès' : '❌ Échec';
+                addTerminalLine(`${status} (Code: ${data.returncode})`, data.returncode === 0 ? 'output' : 'error');
+            } catch (error) {
+                console.error('Erreur exécution:', error);
+                addTerminalLine('❌ Exécution échouée', 'error');
+                showToast('Erreur d\'exécution', 'error');
+            }
+            hideLoading();
+        }
+
+        // Chat avec Semi (utilise le streaming comme dans ton interface principale)
+        async function sendChatMessage() {
+    const input = document.getElementById('chat-input');
+    const message = input.value.trim();
+    if (!message) return;
+    
+    // 1. Ajouter le message utilisateur
+    addChatMessage(message, 'user');
+    input.value = '';
+    
+    // 2. Montrer l'indicateur
+    const typingIndicator = document.getElementById('typing-indicator');
+    typingIndicator.classList.add('show');
+    
+    // 3. Créer le conteneur pour la réponse
+    const botMessageDiv = document.createElement('div');
+    botMessageDiv.className = 'chat-message assistant';
+    document.getElementById('chat-container').appendChild(botMessageDiv);
+    
+    // 4. Préparer le contexte enrichi pour AgentSemi
+    let enrichedPrompt = message;
+    
+    // Récupérer le texte sélectionné s'il y en a
+    let selectedText = "";
+    if (editor && editor.getModel()) {
+        selectedText = editor.getModel().getValueInRange(editor.getSelection());
+    }
+    
+    if (selectedText) {
+        // Cas A : Code sélectionné -> On envoie le snippet précis
+        const ext = currentFile ? currentFile.split('.').pop() : 'python';
+        enrichedPrompt = `
+CONTEXTE CODE (Sélection):
+\`\`\`${ext}
+${selectedText}
+\`\`\`
+QUESTION: ${message}`;
+
+    } else if (currentFile) {
+        // Cas B : Pas de sélection, mais un fichier est ouvert
+        const lowerMsg = message.toLowerCase();
+        
+        // On n'envoie le fichier complet que si c'est pertinent (pour économiser les tokens)
+        if (lowerMsg.includes('ce code') || lowerMsg.includes('debug') || lowerMsg.includes('analyse') || lowerMsg.includes('corrige')) {
+            const ext = currentFile.split('.').pop();
+            enrichedPrompt = `
+CONTEXTE FICHIER (${currentFile}):
+\`\`\`${ext}
+${editor.getValue()}
+\`\`\`
+QUESTION: ${message}`;
+        } else {
+            // Sinon on donne juste le contexte du nom de fichier
+            enrichedPrompt = `[Fichier actif: ${currentFile}] ${message}`;
+        }
+    }
+    
+    try {
+        const response = await fetch('/command', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: enrichedPrompt })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Erreur réseau: ${response.status}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullResponse = "";
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            // Décodage du chunk (Texte brut venant du backend)
+            const chunk = decoder.decode(value, { stream: true });
+            fullResponse += chunk;
+
+            // Rendu via Marked.js (avec coloration syntaxique et boutons)
+            botMessageDiv.innerHTML = marked.parse(fullResponse);
+            
+            // Auto-scroll vers le bas
+            const container = document.getElementById('chat-container');
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        // Analyse post-stream pour détecter des suggestions
+        extractAndProposeCode(fullResponse);
+        
+            } catch (error) {
+                console.error('Erreur chat:', error);
+                botMessageDiv.innerHTML = '❌ Erreur de communication avec Semi';
+                botMessageDiv.classList.add('error');
+            } finally {
+                typingIndicator.classList.remove('show');
+            }
+        }
+                // Synchroniser l'historique du chat
+                async function syncChatHistory() {
+            try {
+                const response = await fetch('/api/chat/history');
+                const data = await response.json();
+                
+                const container = document.getElementById('chat-container');
+                
+                if (data.history && data.history.length > 0) {
+                    // On vide le message de bienvenue par défaut s'il y a un historique
+                    container.innerHTML = ''; 
+                    
+                    data.history.forEach(msg => {
+                        const div = document.createElement('div');
+                        div.className = `chat-message ${msg.role === 'user' ? 'user' : 'assistant'}`;
+                        
+                        if (msg.role === 'assistant') {
+                            // Utilise marked pour le rendu riche (Code, Gras, etc.)
+                            // Assurez-vous d'avoir ajouté <script src="...marked..."> dans le <head>
+                            if (typeof marked !== 'undefined') {
+                                div.innerHTML = marked.parse(msg.content);
+                            } else {
+                                div.textContent = msg.content;
+                            }
+                        } else {
+                            div.textContent = msg.content;
+                        }
+                        
+                        container.appendChild(div);
+                    });
+                    
+                    // Scroll en bas pour voir les derniers messages
+                    container.scrollTop = container.scrollHeight;
+                    
+                    if (typeof addTerminalLine === 'function') {
+                        addTerminalLine('🔄 Historique de conversation synchronisé');
+                    }
+                }
+            } catch (e) {
+                console.error("Erreur sync chat:", e);
+            }
+        }
+
+        // Formater le message avec détection de code
+        function formatMessage(message) {
+            return message.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+                const encodedCode = btoa(unescape(encodeURIComponent(code)));
+                return `
+                    <div class="code-block">
+                        <div class="code-actions">
+                            <button class="code-btn" onclick="applyCode('${encodedCode}')">📝 Appliquer</button>
+                            <button class="code-btn" onclick="copyCode('${encodedCode}')">📋 Copier</button>
+                        </div>
+                        <pre><code>${escapeHtml(code)}</code></pre>
+                    </div>
+                `;
+            });
+        }
+
+        // Appliquer le code dans l'éditeur (Décodage Base64 UTF-8 sécurisé)
+        function applyCode(encodedCode) {
+            try {
+                // 1. Décodage : Inverse de btoa(unescape(encodeURIComponent(x)))
+                const code = decodeURIComponent(escape(atob(encodedCode)));
+                
+                // 2. Injection dans Monaco
+                if (window.editor) {
+                    // On utilise pushEditOperations pour permettre le UNDO (Ctrl+Z)
+                    // C'est plus propre que editor.setValue() qui efface l'historique d'annulation
+                    const model = editor.getModel();
+                    editor.executeEdits('semi-assistant', [{
+                        range: model.getFullModelRange(),
+                        text: code
+                    }]);
+                    
+                    // Formatage automatique après insertion
+                    editor.getAction('editor.action.formatDocument').run();
+                    
+                    addTerminalLine('✅ Code appliqué depuis Semi');
+                    showToast('Code appliqué avec succès !', 'success');
+                } else {
+                    console.error("L'éditeur Monaco n'est pas initialisé.");
+                }
+            } catch (e) {
+                console.error('Erreur décodage/application:', e);
+                showToast('Erreur lors de l\'application du code', 'error');
+            }
+        }
+
+        // Copier le code dans le presse-papier
+        function copyCode(encodedCode) {
+            try {
+                const code = decodeURIComponent(escape(atob(encodedCode)));
+                
+                navigator.clipboard.writeText(code).then(() => {
+                    showToast('Code copié dans le presse-papier !', 'success');
+                }).catch(err => {
+                    console.error('Erreur clipboard:', err);
+                    // Fallback si navigator.clipboard échoue (ex: contextes non sécurisés)
+                    const textArea = document.createElement("textarea");
+                    textArea.value = code;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(textArea);
+                    showToast('Code copié !', 'success');
+                });
+                
+            } catch (e) {
+                console.error('Erreur copie:', e);
+                showToast('Erreur lors de la copie', 'error');
+            }
+        }
+
+        // Extraire et proposer le code
+        function extractAndProposeCode(message) {
+            const codeBlocks = message.match(/```[\s\S]*?```/g);
+            if (codeBlocks && codeBlocks.length > 0) {
+                addTerminalLine(`💡 ${codeBlocks.length} bloc(s) de code détecté(s)`);
+            }
+        }
+
+        // Ajouter un message au chat
+        function addChatMessage(message, type) {
+            const container = document.getElementById('chat-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${type}`;
+            messageDiv.innerHTML = type === 'user' ? escapeHtml(message) : formatMessage(message);
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Fonctions du terminal
+        function addTerminalLine(text, type = 'output') {
+            const terminal = document.getElementById('terminal-content');
+            const line = document.createElement('div');
+            line.className = `terminal-line terminal-${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function clearTerminal() {
+            const terminal = document.getElementById('terminal-content');
+            terminal.innerHTML = '<div class="terminal-line"><span class="terminal-prompt">Terminal effacé</span></div>';
+        }
+
+        function switchTerminalTab(tab) {
+            const tabs = document.querySelectorAll('.terminal-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (tab === 'problems') {
+                // Analyser les problèmes dans le code
+                const model = editor.getModel();
+                const markers = monaco.editor.getModelMarkers({ resource: model.uri });
+                
+                clearTerminal();
+                if (markers.length > 0) {
+                    markers.forEach(marker => {
+                        const type = marker.severity === 8 ? 'error' : 'output';
+                        addTerminalLine(`Ligne ${marker.startLineNumber}: ${marker.message}`, type);
+                    });
+                } else {
+                    addTerminalLine('✅ Aucun problème détecté');
+                }
+            }
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Fonctions utilitaires
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function handleChatEnter(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendChatMessage();
+            }
+        }
+
+        // Nouvelles fonctions
+        function newFile() {
+            currentFile = null;
+            editor.setValue('#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n"""\nNouveau fichier\n"""\n\n');
+            updateEditorTab('untitled.py');
+            addTerminalLine('📄 Nouveau fichier créé');
+        }
+
+        function closeFile() {
+            if (confirm('Sauvegarder avant de fermer ?')) {
+                saveFile();
+            }
+            newFile();
+        }
+
+        function showDependencies() {
+            if (!currentFile) {
+                showToast('Aucun fichier ouvert', 'error');
+                return;
+            }
+            addChatMessage(`Montre-moi les dépendances de ${currentFile}`, 'user');
+            sendChatMessage();
+        }
+
+        // Auto-save
+        setInterval(() => {
+            if (currentFile && editor && !document.hidden) {
+                fetch('/api/save_file', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        path: currentFile,
+                        content: editor.getValue()
+                    })
+                }).then(() => {
+                    console.log('Auto-save effectué');
+                });
+            }
+        }, 30000);
+
+        // Message de bienvenue
+        setTimeout(() => {
+            addTerminalLine('🚀 SemiCode IDE initialisé');
+            addTerminalLine('💡 Ctrl+S pour sauvegarder, F5 pour exécuter');
+            showToast('SemiCode IDE prêt !', 'success');
+        }, 1000);
+        // ========== FONCTION D'IMPORT DE FICHIERS ==========
+function importerFichier(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        const content = e.target.result;
+        
+        // Détecter le langage à partir de l'extension
+        const extension = file.name.split('.').pop().toLowerCase();
+        const langageMap = {
+            'py': 'python',
+            'js': 'javascript',
+            'html': 'html',
+            'css': 'css',
+            'json': 'json',
+            'md': 'markdown',
+            'txt': 'plaintext'
+        };
+        
+        const langage = langageMap[extension] || 'plaintext';
+        
+        // Mettre à jour l'éditeur Monaco
+        if (window.editor) {
+            editor.setValue(content);
+            
+            // Changer le langage si possible
+            if (window.monaco) {
+                monaco.editor.setModelLanguage(editor.getModel(), langage);
+            }
+        }
+        
+        // Mettre à jour le nom dans l'onglet
+        const activeTab = document.querySelector('.editor-tab.active');
+        if (activeTab) {
+            // Choisir l'icône selon le type
+            const icons = {
+                'python': '🐍',
+                'javascript': '📜',
+                'html': '🌐',
+                'css': '🎨',
+                'json': '📊',
+                'markdown': '📝',
+                'plaintext': '📄'
+            };
+            
+            activeTab.innerHTML = `
+                <span class="file-icon">${icons[langage] || '📄'}</span>
+                ${file.name}
+                <span class="close">×</span>
+            `;
+        }
+        
+        // Message de confirmation dans le chat
+        const chatContainer = document.getElementById('chat-container');
+        if (chatContainer) {
+            const message = document.createElement('div');
+            message.className = 'chat-message assistant';
+            message.innerHTML = `✅ Fichier <strong>${file.name}</strong> importé avec succès !<br>
+                               📊 Taille : ${(file.size / 1024).toFixed(2)} KB<br>
+                               🔤 Langage détecté : ${langage}`;
+            chatContainer.appendChild(message);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        // Log console
+        console.log(`✅ Fichier importé : ${file.name} (${langage})`);
+    };
+    
+    reader.onerror = function() {
+        alert('❌ Erreur lors de la lecture du fichier');
+    };
+    
+    reader.readAsText(file);
+}
+
+// Raccourci clavier Ctrl+O pour ouvrir/importer
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'o') {
+        e.preventDefault();
+        document.getElementById('fileInput').click();
+    }
+});
+
+<!-- 3️⃣ OPTIONNEL : Si vous voulez le glisser-déposer aussi, ajoutez ceci après la fonction importerFichier : -->
+
+// Configuration du glisser-déposer sur tout l'éditeur
+document.addEventListener('DOMContentLoaded', function() {
+    const editorContainer = document.querySelector('.editor-container');
+    
+    if (editorContainer) {
+        // Empêcher le comportement par défaut
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            editorContainer.addEventListener(eventName, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
+        });
+        
+        // Effet visuel au survol
+        ['dragenter', 'dragover'].forEach(eventName => {
+            editorContainer.addEventListener(eventName, function() {
+                editorContainer.style.border = '2px dashed #88c0d0';
+                editorContainer.style.background = 'rgba(136, 192, 208, 0.05)';
+            }, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            editorContainer.addEventListener(eventName, function() {
+                editorContainer.style.border = '';
+                editorContainer.style.background = '';
+            }, false);
+        });
+        
+        // Gérer le drop
+        editorContainer.addEventListener('drop', function(e) {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const event = { target: { files: files } };
+                importerFichier(event);
+            }
+        }, false);
+    }
+});
+    </script>
+</body>
+</html>
