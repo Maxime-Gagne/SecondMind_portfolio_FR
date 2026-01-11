@@ -1,4 +1,4 @@
-
+⚠️ International Recruiters / English Version For the complete architectural documentation and research artifacts in English, please visit the primary repository: SecondMind_portfolio_EN.
 <div align="center">
 
   <img src="Images/SecondMind_PosterPromo.jpg" width="400" alt="Poster Promo">
