@@ -1,0 +1,25 @@
+SecondMind|Parler|définir, "SecondMind", est une plateforme d'assistant IA personnel, local et modulaire. Le cœur du système est un agent conversationnel nommé "Semi", conçu pour être un orchestrateur intelligent qui interagit avec l'utilisateur via une interface web complète. L'architecture est optimisée pour fonctionner sur du matériel grand public, en l'occurrence une carte graphique RTX 2060.
+
+Architecture à 3 Niveaux
+Le système est clairement structuré en trois couches distinctes qui communiquent entre elles :
+
+1. Le Frontend (Interface Utilisateur) 🖥️
+C'est la partie visible avec laquelle vous interagissez. Elle est composée de deux pages web principales :
+
+hub_de_secondmind.html: Agit comme un portail de lancement central qui donne accès aux différents modules de l'écosystème SecondMind (comme NeuroNote, SemiCode IDE, etc.) et vérifie l'état de la connexion avec le backend.
+
+formation_secondmind.html: C'est l'interface d'interaction principale. Elle fournit non seulement une fenêtre de chat pour dialoguer avec Semi, mais aussi des outils avancés pour gérer la mémoire de l'agent. Vous pouvez y injecter des connaissances générales, des modules de formation structurés, ou du feedback pour le renforcement, et vous avez un contrôle manuel sur le mode de recherche (mémoire ou web).
+
+2. Le Backend (Serveur et Logique) 🧠
+C'est le cerveau de l'opération, qui s'exécute en local sur votre machine.
+
+Serveur API (interface_backend_hermes.py): Un serveur Python (basé sur Flask) qui crée les points de terminaison (/command, /memoire, etc.) nécessaires pour que le frontend puisse communiquer avec la logique de l'IA.
+
+AgentSemi (agent_Semi.py): C'est l'orchestrateur principal. Il est conçu avec un système à deux vitesses : une "piste rapide" pour les requêtes simples comme "salut" qui ne nécessitent pas le LLM, et un "pipeline cognitif complet" pour les questions complexes. Ce pipeline utilise une série de sous-agents, notamment l'IntentionDetector, pour analyser la demande et l'AgentRecherche pour effectuer une Récupération Augmentée (RAG), trouvant les informations pertinentes dans la mémoire à long terme avant de générer une réponse.
+
+3. Le Moteur d'IA (Inférence Locale) ⚙️
+C'est la couche la plus basse, qui exécute les calculs de l'IA.
+
+MoteurLLM (moteur_llm.py): Une classe dédiée qui utilise la bibliothèque llama-cpp-python pour charger et exécuter un modèle de langage au format GGUF.
+
+Modèle et Configuration: Le système est configuré pour utiliser des modèles de type "Hermes" (comme Mistral 7B ou Hermes 4 14B) et est optimisé pour du matériel spécifique, avec une fenêtre de contexte délibérément limitée (ex: 2048 tokens) pour garantir la performance sur une VRAM limitée, en s'appuyant sur la grande RAM de votre système pour le stockage du modèle.

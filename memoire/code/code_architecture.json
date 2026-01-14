@@ -1,0 +1,86 @@
+
+    Ceci est un exemple
+
+Accès au dépôt privé : Pour consulter le code source complet (Core Logic), veuillez me contacter en précisant votre organisation.
+
+Maxime Gagné : 📞 438-402-8213 | ✉️ maximegagne.ai@gmail.com | www.linkedin.com/in/maxime-gagné-6b14541b9
+
+
+
+
+    "agentique.base.auditor_base": {
+      "path": "D:\\rag_personnel\\agentique\\base\\auditor_base.py",
+      "module": "agentique.base.auditor_base",
+      "classes": {
+        "StandardsAgents": {
+          "bases": [],
+          "methods": {},
+          "attributes": {},
+          "doc": "Standards RÉELS extraits des agents existants\nPas de suggestions, uniquement ce qui existe"
+        },
+        "AuditorBase": {
+          "bases": [],
+          "methods": {
+            "__init__": {
+              "signature": "def __init__(self, nom_agent: str):",
+              "doc": "",
+              "args": [
+                "self",
+                "nom_agent"
+              ],
+              "types": {
+                "nom_agent": "str"
+              },
+              "calls": [
+                {
+                  "module": "nom_agent",
+                  "function": "lower",
+                  "line": 278,
+                  "resolved_from": "nom_agent"
+                },
+                {
+                  "module": null,
+                  "function": "StandardsAgents",
+                  "line": 279,
+                  "resolved_from": "global"
+                }
+              ],
+              "return_type": null,
+              "variables_used": [
+                "self._config_agent",
+                "self._valeurs_par_defaut",
+                "self.nom_agent",
+                "self.standards"
+              ]
+            },
+            "get_config": {
+              "signature": "def get_config(self) -> Dict[str, Any]:",
+              "doc": "Retourne la config pour cet agent",
+              "args": [
+                "self"
+              ],
+              "types": {},
+              "calls": [
+                {
+                  "module": null,
+                  "function": "getattr",
+                  "line": 291,
+                  "resolved_from": "global"
+                }
+              ],
+              "return_type": "Dict[str, Any]",
+              "variables_used": [
+                "self._config_agent",
+                "self._valeurs_par_defaut",
+                "self.nom_agent",
+                "self.standards"
+              ]
+            },
+            "get_path": {
+              "signature": "def get_path(self, path_type: str, nom_agent: Optional[str]=None) -> Optional[str]:",
+              "doc": "CORRIGÉ : Récupère un chemin configuré en utilisant la structure StandardsAgents.",
+              "args": [
+                "self",
+                "path_type",
+                "nom_agent"
+              ]

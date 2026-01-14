@@ -1,0 +1,45 @@
+## ===============================================
+# SECTION 1 : DASHBOARD (Mis à jour par script)
+# ===============================================
+# Cette section est le "tableau de bord" de l'agent. Son contenu sera
+# entièrement écrasé et mis à jour par le script 'synchronisation_stats.py'.
+# Ne modifiez pas cette section manuellement.
+
+dashboard_stats:
+  derniere_mise_a_jour: "jamais"
+  appels_total: 0
+  erreurs_total: 0
+  temps_moyen_ms: 0
+  taux_de_succes: "N/A"
+  specifiques: {}
+
+# ===============================================
+# SECTION 2 : CONFIGURATION (Paramètres manuels)
+# ===============================================
+# Cette section contient les paramètres que vous définissez pour contrôler
+# le comportement de l'agent. Le script de synchronisation ne la modifiera JAMAIS.
+
+configuration:
+  # --- Chemins Système ---
+  chemins:
+    base_data: "D:/rag_personnel/data_training_center/Semi/intention_detector_SBERT"
+    datasets:
+      - "dataset/intentions_base.jsonl"
+      - "dataset/batch_dataset.jsonl"
+      - "dataset/live_dataset.jsonl"
+    registre_labels: "D:/rag_personnel/data_training_center/Semi/intention_detector_SBERT/intention_label_map.json"
+
+  # --- Hyperparamètres d'Apprentissage ---
+  entrainement:
+    axes: ["sujet", "action", "categorie"]
+    epochs: 10
+    learning_rate: 0.0001
+    batch_size_train: 32
+    batch_size_val: 64
+    test_size_ratio: 0.15
+    hidden_dim: 256
+
+  # --- Référence Modèle de base ---
+  sbert:
+    model_path: "D:/rag_personnel/model/SBERT_mpnet_local"
+    device: "cuda" # ou "cpu"

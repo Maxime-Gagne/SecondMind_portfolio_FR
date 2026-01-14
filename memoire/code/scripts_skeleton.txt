@@ -1,0 +1,84 @@
+    Ceci est un exemple
+
+Accès au dépôt privé : Pour consulter le code source complet (Core Logic), veuillez me contacter en précisant votre organisation.
+
+Maxime Gagné : 📞 438-402-8213 | ✉️ maximegagne.ai@gmail.com | www.linkedin.com/in/maxime-gagné-6b14541b9
+
+
+# SQUELETTE DES SCRIPTS DU SYSTÈME
+
+📄 agentique.Semi.agent_Semi (D:\rag_personnel\agentique\Semi\agent_Semi.py)
+  class AgentSemi(AgentBase):
+    def __init__(self, get_cache=None, get_lock=None, socketio=None):
+    def _initialiser_outils_systeme(self):
+    def _initialiser_moteurs(self):
+    def _initialiser_sous_agents(self):
+      """Initialise les agents cognitifs avec injection de dépendances.
+L'ordre est critique pour les dépendances circulaires."""
+    def _initialiser_rag_code(self):
+      """Initialise l'adaptateur de recherche de code (Optionnel)."""
+    def _setup_callbacks_viewer(self):
+      """Configure le callback pour le Prompt Viewer (SocketIO)."""
+    def _initialiser_etat_session(self):
+      """Initialise les variables d'état de session."""
+    def _lancer_processus_demarrage(self):
+      """Lance les processus de gouvernance, continuité et maintenance."""
+    def penser(self, prompt: str, interaction_id: str=None, session_id: str=None, message_turn: int=None, stream: bool=False, search_mode: str='auto', historique_brut: Optional[List[str]]=None, enable_thinking: bool=False):
+      """Génère une réponse avec monitoring de performance en temps réel, orchestrant
+le pipeline cognitif d'AgentSemi."""
+    def _gerer_commandes_systeme(self, prompt: str, stream: bool) -> Optional[Dict]:
+      """[ATOME] Gère les commandes système (+1, -1) et les protocoles (!!!).
+Si une action coupe le flux normal, retourne immédiatement le résultat (yield)."""
+    def _handle_forced_search(self, prompt: str, search_mode: str) -> Optional[Any]:
+      """Gère le mode de recherche forcée (Web uniquement).
+Redirige vers le module Deep Research de l'AgentRecherche."""
+    def _enqueteur_autonome(self, prompt: str, intention: ResultatIntention) -> List[str]:
+      """Décide SI une enquête est nécessaire, et si oui, l'exécute.
+Combine l'intention SBERT et les mots-clés forcés."""
+    def post_traitement_async(self, prompt: str, reponse: str, standard_prompt: StandardPrompt, interaction_id: str, session_id: str, message_turn: int):
+      """Post-traitement asynchrone après génération de la réponse."""
+    def _verifier_batch_au_demarrage(self):
+      """Vérifie si le traitement batch différé doit être lancé au démarrage.
+Se déclenche si le dernier run date de plus de 45h ou n'existe pas."""
+    def _lancer_batch_async(self):
+      """Lance le traitement batch (consolidation mémoire) dans un thread séparé.
+Appelé par _verifier_batch_au_demarrage."""
+    def consulter_architecture_et_code(self, question: str) -> str:
+      """Outil critique : À utiliser dès que tu dois répondre à une question sur
+le fonctionnement interne, le code, les fichiers ou l'architecture du projet.
+Permet de lire le code source réel du projet.
+
+Args:
+    question (str): La question technique précise (ex: "Comment fonctionne agent_Memoire ?")
+
+Returns:
+    str: Un résumé contextuel contenant les bouts de code pertinents."""
+    def _rebuild_faiss_code_index(self):
+      """Reconstruit l'index FAISS du code après ajout de nouveaux artefacts.
+Lit le fichier code_chunks.jsonl et crée des objets ContexteCode robustes."""
+    def _exec_update_system_summary(self, new_content: str) -> str:
+      """[MUSCLE] Écrase le fichier etat_systeme_resume.md.
+FORCE la date de mise à jour système réelle."""
+    def _detecter_et_executer_function_call(self, response: str) -> Optional[Dict]:
+      """Détecte et exécute un function call"""
+    def actualiser_resume_systeme(self):
+      """Lit l'historique et le TODO (situés dans le dossier de l'agent Semi)
+et génère le fichier 'etat_systeme_resume.md'.
+Utilise l'Auditor pour résoudre les chemins de manière absolue."""
+    def _format_manual_context(self, manual_context: List[Dict]) -> str:
+      """Formate le contexte manuel des slots en string pour agent_Parole"""
+    def obtenir_etat_cognitif(self) -> Dict[str, Dict]:
+      """Collecte les statistiques de tous les sous-agents pour synchronisation.
+
+Returns:
+    Dict avec les stats de chaque agent au format:
+    {
+        "AgentMemoire": {
+            "appels_total": int,
+            "erreurs_total": int,
+            "temps_moyen_ms": float,
+            "stats_specifiques": dict
+        },
+        ...
+    }"""
+

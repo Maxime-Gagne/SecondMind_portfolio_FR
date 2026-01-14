@@ -1,0 +1,141 @@
+# ===============================================
+# SECTION 1 : DASHBOARD (Mis à jour par script)
+# ===============================================
+dashboard_stats:
+  derniere_mise_a_jour: '2026-01-07 17:43:21'
+  appels_total: 2
+  erreurs_total: 0
+  taux_de_succes: 100.00%
+  specifiques:
+    appels_sauvegarder_interaction_brute: 1
+    appels_memoriser_interaction: 1
+configuration:
+
+  # === LISTE DES TYPES ACTIFS ===
+  types_memoire_actives:
+  - "brute"
+  - "vectorielle"
+  - "persistante"
+  - "reflexive"
+  - "historique"
+  - "connaissances"
+  - "modules_formation"
+
+  # === A. DÉFINITION DES TYPES ===
+  types_memoire:
+    brute:
+      description: "Données brutes"
+      priorite: 0.5
+      retention: "temporaire"
+      dossier: "memoire/brute"
+    persistante:
+      description: "Informations personnelles injectées"
+      priorite: 0.9
+      retention: "permanente"
+      dossier: "memoire/persistante"
+    vectorielle:
+      description: "Données vectorisées"
+      priorite: 0.7
+      retention: "permanente"
+      dossier: "memoire/vectorielle"
+    reflexive:
+      description: "Corrections et feedbacks utilisateur"
+      priorite: 1.0
+      retention: "permanente"
+      dossier: "memoire/reflexive"
+    historique:
+      description: "Historique des interactions récentes"
+      priorite: 0.8
+      retention: "temporaire"
+      dossier: "memoire/historique"
+    temp:
+      description: "Données temporaires"
+      priorite: 0.3
+      retention: "session"
+      dossier: "memoire/temp"
+    connaissances:
+      description: "Faits universels, définitions, concepts"
+      priorite: 0.95
+      retention: "permanente"
+      dossier: "memoire/connaissances"
+    modules_formation:
+      description: "Modules de formation injectés"
+      priorite: 0.92
+      retention: "permanente"
+      dossier: "memoire/modules_formation"
+    ConceptNet:
+      description: "Base de données conceptuelle"
+      priorite: 0.85
+      retention: "permanente"
+      dossier: "memoire/ConceptNet"
+
+  # === B. PARAMÈTRES MOTEUR VECTORIEL ===
+  moteur_vectoriel:
+    model_name: "sentence-transformers/all-MiniLM-L6-v2"
+    dimension: 384
+    repertoire_index: "memoire/vectorielle"
+
+  # === C. PARAMÈTRES PROCESSEUR (Consolidation) ===
+  processeur_persistante:
+    timeout_session_heures: 4
+    # Le Prompt Système pour la consolidation est centralisé ici
+    prompt_consolidation: |
+      Tu es un Moteur de Consolidation Mémoire.
+      Tâche : Analyse cette session COMPLÈTE et génère une fiche de résumé pour CHAQUE message.
+      Ta mission est de classer CHAQUE message utilisateur selon trois axes :
+      1. SUJET
+      2. ACTION
+      3. CATÉGORIE
+
+      OBJECTIF CRITIQUE : MAINTIEN DE L'INTENTION
+      - Analyse le contexte global pour déterminer le SUJET RÉEL de la session.
+      - Exemple : Si l'utilisateur dit "Bonjour" puis "Corrige ce script python", le "Bonjour" doit être classé SCRIPT/CODER.
+
+      RÈGLES DE CLASSIFICATION :
+      1. SUJET (Choisir un seul) : Script, Fichier, SecondMind, Setup, General
+      2. ACTION (Choisir une seule) : Parler, Penser, Faire, Coder, Debug
+      3. CATÉGORIE (Choisir une seule) : Planifier, Tester, Configurer, Documenter, Analyser, Definir, Comparer, Demander, Confirmer, Saluer
+         Pour CODER : Agent, Backend, Systeme, Test, Autre
+
+      FORMAT DE SORTIE JSON ATTENDU (Répéter pour chaque message) :
+      === MSG X ===
+      ```json
+      {{
+       "sujet": "...",
+       "action": "...",
+       "categorie": "...",
+       "resume": "Synthèse télégraphique du contenu"
+      }}
+      ```
+      IMPORTANT : Une fois tous les messages traités, écris EXPLICITEMENT : "=== FIN DE SESSION ===" et arrête-toi.
+
+  # === D. GESTION DES ARTEFACTS CODE ===
+  artefacts_code:
+    extensions_map:
+      python: "py"
+      javascript: "js"
+      typescript: "ts"
+      json: "json"
+      html: "html"
+      css: "css"
+      markdown: "md"
+      yaml: "yaml"
+      bash: "sh"
+    # Artefacts spéciaux à ignorer (ex: appels d'outils)
+    ignorer_tool_calls: true
+
+  # === E. CLASSIFICATION AUTOMATIQUE ===
+  classification:
+    regles:
+    - si_contient: ["définition", "qu'est-ce que", "signifie"]
+      alors: "connaissances"
+    - si_contient: ["module", "formation", "cours", "leçon"]
+      alors: "modules_formation"
+    - si_contient: ["corrige", "erreur", "plutôt", "feedback"]
+      alors: "reflexive"
+
+  # === F. CONTEXT MANAGER ===
+  context_manager:
+    templates_injection:
+      standard: "# Contexte mémoire activé :\n{contexte}\n\n---\n\n{prompt}"
+      minimal: "{contexte}\n{prompt}"

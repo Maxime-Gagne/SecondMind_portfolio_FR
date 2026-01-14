@@ -1,0 +1,5 @@
+{
+  "id": "R006_shield_sys_doc_SafeDelete",
+  "type": "fichiers",
+  "regle": "Toute opération de suppression/écriture doit être vérifiée et loguée avec retour d'erreur explicite"
+}

@@ -1,0 +1,84 @@
+dashboard_stats:
+  derniere_mise_a_jour: '2026-01-07 17:43:22'
+  appels_total: 2
+  erreurs_total: 0
+  taux_de_succes: 100.00%
+  specifiques:
+    appels_generer: 1
+    appels_generer_stream: 1
+active_profile_mini_llm: Phi3Q4
+models:
+  # ----------------------------------------------------------
+  # 1️⃣  PROFIL GGUF — Phi-3 Mini 4K Instruct (Q4)
+  # ----------------------------------------------------------
+  Phi3Q4:
+    model_name: Phi-3-Mini-4K-Instruct-Q4
+    model_path: D:/rag_personnel/model/Phi-3-mini-4k-instruct-q4.gguf
+    # L'URL doit pointer vers un port différent du moteur principal (ex: 8081)
+    server_url: "http://127.0.0.1:8081"
+
+    loading:
+      context_window: 4096
+      n_gpu_layers: -1
+      n_batch: 512
+      n_threads: 8
+      use_mmap: true
+      use_mlock: true
+      verbose: false
+      logits_all: false
+      chat_format: chatml
+
+    generation:
+      temperature: 0.6
+      max_tokens: 512
+      top_p: 0.9
+      do_sample: false
+      cache_prompt: false
+      stop_tokens: ["<|im_end|>", "</s>", "User:"]
+
+  # ----------------------------------------------------------
+  # 2️⃣  PROFIL LORA — Phi-3 Mini 4K FP16 + adaptateur LoRA
+  # ----------------------------------------------------------
+  Phi3LoRA:
+    model_name: Phi-3-Mini-4K-FP16-LoRA
+    model_path: D:/rag_personnel/model/Phi_3_mini_4k_instruct_fp16
+    # LoRA utilisée pour la classification d’intentions
+    # (entraînement: data_training_center/Semi/scripts/intention_detector_lora)
+
+    loading:
+      base_model_path: D:/rag_personnel/model/Phi_3_mini_4k_instruct_fp16
+      lora_adapter_path: D:/rag_personnel/data_training_center/Semi/scripts/intention_detector_lora
+      device_map: cuda
+      torch_dtype: bfloat16
+      attn_implementation: eager
+      context_window: 4096
+      n_gpu_layers: -1
+      n_batch: 512
+      n_threads: 8
+      verbose: true
+
+    generation:
+      temperature: 0.3
+      max_tokens: 256
+      top_p: 0.9
+      do_sample: true
+      cache_prompt: false
+      stop_tokens: ["<|im_end|>", "</s>", "User:"]
+
+# ----------------------------------------------------------
+# 3️⃣  PROFIL CLASSIFIER (NN) — SBERT + Tête de Classification
+# ----------------------------------------------------------
+
+  SbertClassifier:
+    # 1. Le "Cerveau sémantique" de base
+    base_model_path: D:\rag_personnel\model\SBERT_mpnet_local
+
+    # 2. Le "Standardiste" entraîné (votre micro-modèle NN)
+    #    C'est le fichier que vous générez avec PyTorch
+    classifier_head_path: "D:/rag_personnel/data_training_center/Semi/intention_detector_SBERT/classifier_sujet.pth"
+    # 3. Le fichier qui mappe les sorties (ex: "0" -> "CODER")
+    label_map_path: "D:/rag_personnel/data_training_center/Semi/intention_detector_SBERT/intention_label_map.json"
+
+    loading:
+      device: "cpu"
+    # Pas de section "generation"

@@ -1,0 +1,5 @@
+{
+  "id": "R001_sys_InterpreteurPython",
+  "type": "environnement",
+  "regle": "Interpréteur Python : `D:\\rag_personnel\\rag_env\\Scripts\\python.exe`"
+}

@@ -1,0 +1,5 @@
+{
+  "id": "R004_sys_UseRoot",
+  "type": "chemins",
+  "regle": "Tous les chemins doivent être centralisés à partir de `ROOT_DIR"
+}

@@ -1,0 +1,56 @@
+## ===============================================
+# SECTION 1 : DASHBOARD (Mis à jour par script)
+# ===============================================
+# Cette section est le "tableau de bord" de l'agent. Son contenu sera
+# entièrement écrasé et mis à jour par le script 'synchronisation_stats.py'.
+# Ne modifiez pas cette section manuellement.
+
+dashboard_stats:
+  derniere_mise_a_jour: '2025-12-30 17:53:57'
+  appels_total: 1
+  erreurs_total: 0
+  taux_de_succes: 100.00%
+  specifiques:
+    appels_get_historique_nouveau_chat: 1
+
+configuration:
+
+  # === PARAMÈTRES DE FLUX ===
+  max_historique_session: 40
+  max_echanges_nouveau_chat: 3
+  seuil_pertinence_juge: 0.5          # <--- AJOUTÉ (était 0.5 en dur)
+  max_elements_contexte: 5
+
+  # === HISTORIQUE DE CONVERSATION ===
+  max_historique_session: 40          # Nombre max de messages gardés en mémoire (4 échanges = 8 messages)
+  max_echanges_nouveau_chat: 3       # Nombre d'échanges récupérés au démarrage d'une nouvelle session
+  # === RECHERCHE DE CONTEXTE ===
+  contexte_proactif: true            # Activer la recherche proactive de contexte
+  max_elements_contexte: 5           # Nombre maximum d'éléments de contexte à retourner
+  # === FILTRAGE ===
+  filtrer_doublons: true             # Éliminer les éléments de contexte redondants
+  ponderation_recence: 0.3           # Poids accordé à la récence (0-1)
+  # === FICHIERS SPÉCIAUX ===
+  fichier_protocole_alerte: "protocole_intervention_ALERTE.md"
+
+  # === GOUVERNANCE DES RÈGLES ===
+  # Liste des tags qui doivent être TOUJOURS chargés (ex: vérité, sécurité)
+  tags_prioritaires: ["truth", "shield"] # <--- AJOUTÉ (remplace "truth" en dur)
+  # === 1. MAPPING PRÉCIS (ID exact) - Pour les cas chirurgicaux ===
+  # Format : "Nom_Fichier_Regle": "Regex_Déclencheur"
+  regles_symboliques:
+    R_001_sys_InterpreteurPython.json: "(python|code|script)"
+    R_002_doc_ValiderSourceVisuelle.json: "(image|visuel|photo)"
+    R_003_doc_sys_NoHardcode.json: "(chemin|path|url)"
+    R_004_sys_UseRoot.json: "(racine|root|projet)"
+    R_005_doc_sys_VerificationChemin.json: "(verifier|existe)"
+    R_006_shield_sys_doc_SafeDelete.json: "(supprimer|delete|effacer)"
+    R_007_sys_dev_BestPractice.json: "(best practice|bonne pratique)"
+    R_008_sys_doc_truth_ProofIsRight.json: "(preuve|verifier)"
+    R_009_sys_max_truth_AlignementNarratif.json: ".*"  # Toujours actif si souhaité
+
+  # === 2. MAPPING DE CATÉGORIE (Tags) - Pour les comportements globaux ===
+  # Si le prompt contient ces mots, on charge toutes les règles contenant le tag
+  triggers_categories:
+    doc: "fichier|script|document|code|py|json|md|fonction|classe|crée"
+    sys: "systeme|interpreteur|terminal|commande|os|windows|python|pip|conda"

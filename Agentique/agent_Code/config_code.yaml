@@ -1,0 +1,65 @@
+## ===============================================
+# SECTION 1 : DASHBOARD (Géré par script)
+# ===============================================
+dashboard_stats:
+  derniere_mise_a_jour: "jamais"
+  appels_total: 0
+  erreurs_total: 0
+  temps_moyen_ms: 0
+  taux_de_succes: "N/A"
+  specifiques: {}
+
+# ===============================================
+# SECTION 2 : CONFIGURATION (Paramètres manuels)
+# ===============================================
+configuration:
+  # --- Extraction (CodeExtractorManager) ---
+  extraction:
+    dossier_extraits: "codes_extraits"
+    placeholder_template: "<ARTIFACT_CODE ID:{id} LANG:{lang} INFO:[{info}]>"
+
+  # --- Chemins Sortie (AgentCode) ---
+  output_paths:
+    architecture: "code/code_architecture.json"
+    chunks: "code/code_chunks.jsonl"
+    faiss_index: "code/code_chunks.faiss"
+    faiss_meta: "code/code_chunks_meta.json"
+
+  # --- Recherche Vectorielle ---
+  vectoriel:
+    model_name: "sentence-transformers/all-MiniLM-L6-v2"
+    enabled: true
+    top_k_defaut: 8
+
+  # --- Documentation Externe ---
+  documentation_externe:
+    server_url: "http://localhost:5000/api/search"
+    timeout: 2.0
+    libs_critiques: ["pydantic", "trl", "peft", "transformers", "langchain", "fastapi"]
+
+  # Paramètres du scan
+  scan:
+    include_dirs: ["agentique"]
+    extensions_code: [".py"]
+    extensions_config: [".yml", ".yaml", ".json"]
+    extensions_text: [".html"]
+
+  # Exclusions
+  exclusions:
+    dirs:
+      - "__pycache__"
+      - ".git"
+      - "BACKUPS"
+      - "backups"
+      - ".idea"
+      - ".vscode"
+      - "venv"
+      - ".venv"
+      - "tests"
+      - "sons"
+      - "logs"
+
+  # Paramètres Vectoriels
+  vectoriel:
+    model_name: "sentence-transformers/all-MiniLM-L6-v2"
+    enabled: true

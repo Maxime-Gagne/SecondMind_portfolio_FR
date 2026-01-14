@@ -1,0 +1,147 @@
+## ===============================================
+# SECTION 1 : DASHBOARD (Mis à jour par script)
+# ===============================================
+# Cette section est le "tableau de bord" de l'agent. Son contenu sera
+# entièrement écrasé et mis à jour par le script 'synchronisation_stats.py'.
+# Ne modifiez pas cette section manuellement.
+
+dashboard_stats:
+  derniere_mise_a_jour: "jamais"
+  appels_total: 0
+  erreurs_total: 0
+  temps_moyen_ms: 0
+  taux_de_succes: "N/A"
+  specifiques: {} # Les stats spécifiques à l'agent seront ajoutées ici par le script
+
+
+
+# ================================================
+# SECTION 0 : CONFIGURATION DE L'AGENT AUDITOR
+# ================================================
+configuration:
+  niveau_audit: DEBUG
+  activer_audit: true
+  conserver_logs_jours: 30
+  verifier_integrite: true
+  alerter_erreurs: true
+  mode_par_defaut: "deep_scan" # Options: "sanity_check" (rapide) ou "deep_scan" (complet)
+# ======================================================
+# 1. PÉRIMÈTRE D'ANALYSE (Scope Strict)
+# ======================================================
+perimetre:
+  extensions_cibles: [".py", ".md", ".json", ".yaml", ".yml"]
+  
+  # ✅ NOUVEAU : Liste blanche des dossiers à auditer
+  dossiers_audit:
+    - "agentique"
+    - "Nuclear_Formation_Datacenter"
+
+  # Dossiers pour la cartographie (peut être identique ou plus large)
+  dossiers_cartographie:
+    - "agentique"
+    
+  # On garde les exclusions par sécurité (pour les sous-dossiers internes)
+  exclusions_globales:
+    - "__pycache__"
+    - ".git"
+    - "venv"
+    - ".vscode"
+    - "node_modules"
+    - "BACKUPS"
+    - "tests"
+    - "outils_de_test"
+    - "modules_futurs"
+
+# ======================================================
+# 2. SÉCURITÉ & DONNÉES (Le Gardien)
+# ======================================================
+securite:
+  sanctuaires:
+    - "memoire/brute"
+    - "memoire/historique"
+  
+  patterns_interdits:
+    - pattern: "\\.unlink\\("
+      message: "Suppression de fichier interdite (.unlink)"
+      gravite: "CRITIQUE"
+    - pattern: "os\\.remove"
+      message: "Suppression de fichier interdite (os.remove)"
+      gravite: "CRITIQUE"
+    - pattern: "shutil\\.rmtree"
+      message: "Suppression de dossier interdite"
+      gravite: "CRITIQUE"
+    - pattern: "(?<!\\.)eval\\("
+      message: "Code dynamique interdit (eval)"
+      gravite: "MAJEUR"
+    - pattern: "exec\\("
+      message: "Code dynamique interdit (exec)"
+      gravite: "MAJEUR"
+    - pattern: "subprocess\\.run.*shell=True"
+      message: "Shell=True est dangereux"
+      gravite: "MAJEUR"
+    - pattern: "password\\s*="
+      message: "Credential Hardcoded détecté"
+      gravite: "CRITIQUE"
+
+vocabulaire:
+  enabled: true
+  gravite_hors_vocabulaire: "WARNING"
+  exceptions_autorisees: ["i", "j", "k", "v", "e", "f", "ts", "id", "idx", "key", "val", "obj", "data", "item", "self", "args", "path", "file", "root", "kwargs", "config", "logger", "result", "content", "match", "stream", "prompt"]
+
+communication:
+  seuil_alerte_gardien: "CRITIQUE"
+
+# ======================================================
+# 3. STRUCTURE & ARCHITECTURE (L'Urbaniste)
+# ======================================================
+architecture:
+  agents_essentiels:
+    - "AgentSemi"
+    - "AgentMemoire"
+    - "AgentParole"
+    - "AgentJuge"
+    - "AgentRecherche"
+
+whitelist:
+  modules_standards: ["os", "sys", "json", "re", "datetime", "pathlib", "typing", "ast", "collections", "threading", "logging", "uuid", "hashlib", "time", "math", "random", "shutil", "subprocess", "yaml", "requests"]
+  modules_secondmind: ["agentique", "agentique.base", "agentique.Semi", "memoire", "agent_Semi", "agent_Parole", "agent_Memoire", "agent_Juge", "agent_Contexte", "agent_Recherche", "moteur_vecteur"]
+
+meta_agent_compliance:
+  enabled: true
+  features_obligatoires:
+    heritage_agent_base: true
+    logger_cognitif: true
+    stats_manager: true
+    auditor: true
+    memoire_ram: true
+    init_super: true
+  patterns_obligatoires: ["super().__init__", "self.logger"]
+  patterns_recommandes: ["self.stats_manager.incrementer_appel", "self.auditor.get_path"]
+  agents_exemptes: ["AgentWrapperExemple"]
+
+analyse:
+  enabled: true
+  types:
+    dependances: true
+    cycles: true
+    orphelins: true
+    agents: true
+    architecture: true
+    meta_agent_compliance: true
+  seuils:
+    max_cycles: 0
+    max_orphelins: 5
+    min_compliance: 80.0
+    complexite_max: 25
+
+# ======================================================
+# 4. RAPPORTS & LOGGING
+# ======================================================
+rapports:
+  enabled: true
+  formats:
+    yaml: true
+    json: true
+    txt: false
+  dossier_sortie: "logs/structure"
+

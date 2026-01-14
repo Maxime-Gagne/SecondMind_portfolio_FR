@@ -1,0 +1,39 @@
+## ===============================================
+# SECTION 1 : DASHBOARD (Mis à jour par script)
+# ===============================================
+# Cette section est le "tableau de bord" de l'agent. Son contenu sera
+# entièrement écrasé et mis à jour par le script 'synchronisation_stats.py'.
+# Ne modifiez pas cette section manuellement.
+
+dashboard_stats:
+  derniere_mise_a_jour: '2026-01-07 17:43:22'
+  appels_total: 0
+  erreurs_total: 0
+  taux_de_succes: 100.00%
+  specifiques: {}
+configuration:
+  # Paramètres d'analyse réflexive
+  analyse:
+    taille_historique_contexte: 6    # Nombre d'échanges inclus dans le prompt
+    top_k_similaires_default: 5      # Recherche standard
+    top_k_gouvernance: 3             # Recherche pour incident critique
+
+  # Paramètres pour la détection de boucles
+  boucle_breaker:
+    seuil_repetition: 3
+    fenetre_analyse: 10
+
+  # Paramètres Feedback & Apprentissage
+  feedback:
+    seuil_positif: 0.5               # Score min pour déclencher l'indexation +1
+    mot_cle_declencheur: "mémoire"   # Tag qui déclenche l'indexation immédiate
+
+  # Paramètres pour l'évaluation de la cohérence
+  evaluation_coherence:
+    seuil_coherence_stable: 0.7
+    seuil_coherence_degradee: 0.5
+
+  # Paramètres pour la journalisation
+  journalisation:
+    niveau_log: "info"
+    journal_par_type: true

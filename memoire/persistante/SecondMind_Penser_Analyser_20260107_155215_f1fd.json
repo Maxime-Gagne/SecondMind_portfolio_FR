@@ -1,0 +1,38 @@
+{
+  "prompt": "Résumé 1/1",
+  "reponse": "Recherche en mémoire de la première mention de 'metaclass'",
+  "system": "System Prompt Batch (Consolidation)",
+  "intention": {
+    "prompt": "Classification Batch",
+    "sujet": "SecondMind",
+    "action": "Penser",
+    "categorie": "Analyser"
+  },
+  "contexte_memoire": [
+    {
+      "contenu": "Batch Auto",
+      "titre": "BATCH",
+      "type": "systeme",
+      "score": 0.0
+    }
+  ],
+  "meta": {
+    "id": "08e8cfa5-f44b-4749-b92c-4621fce254a3",
+    "timestamp": "2026-01-07T15:52:15.699989",
+    "session_id": "720dd73d-9992-417c-9687-880ffde365f7",
+    "message_turn": 1,
+    "source_agent": "ProcesseurBrutePersistante",
+    "type_memoire": "persistante",
+    "fichiers_consultes": [],
+    "validation_juge": true,
+    "score_qualite": 1.0,
+    "nb_problemes": 0,
+    "details_juge": "Généré par Consolidation Batch",
+    "len_contenu": 58,
+    "ref_vectoriel": null,
+    "ref_whoosh": null,
+    "data_libre": {
+      "source": "consolidation_globale"
+    }
+  }
+}

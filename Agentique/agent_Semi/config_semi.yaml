@@ -1,0 +1,16 @@
+## ===============================================
+# SECTION 1 : DASHBOARD (Mis à jour par script)
+# ===============================================
+# Cette section est le "tableau de bord" de l'agent. Son contenu sera
+# entièrement écrasé et mis à jour par le script 'synchronisation_stats.py'.
+# Ne modifiez pas cette section manuellement.
+
+dashboard_stats:
+  derniere_mise_a_jour: '2026-01-07 17:43:22'
+  appels_total: 11
+  erreurs_total: 0
+  taux_de_succes: 100.00%
+  specifiques:
+    appels_penser: 2
+    appels_obtenir_etat_cognitif: 8
+    appels_post_traitement_async: 1

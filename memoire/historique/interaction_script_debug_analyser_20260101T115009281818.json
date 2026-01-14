@@ -1,0 +1,73 @@
+{
+  "prompt": "audit agent_Semi, agent_Contexte et agent_Recherche. Vérifie si Semi utilise bien ce que Contexte et Recherche trouvent",
+  "reponse": "### INTENTION (GUIDAGE)\nSujet: Sujet.SCRIPT | Action: Action.DEBUG | Catégorie: Categorie.ANALYSER\n--------------------------------------------------\n### 🔧 SUR L'ÉTABLI : agent_Semi.py\n📄 **FICHIER**: `agent_Semi.py`\n📍 Path: `D:\\rag_personnel\\agentique\\Semi\\agent_Semi.py`\n```py\n#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n# pylint: disable=method-hidden\n# pylint: disable=no-member\n\"\"\"Agent Semi - Orchestrateur principal avec RAG Préemptif et système à deux vitesses.\"\"\"\nimport json\nimport re\nimport time\nimport requests\nfrom scipy import stats\nimport yaml\nimport uuid\nfrom datetime import datetime\nfrom dataclasses import asdict, is_dataclass\nimport threading\nfrom typing import List, Dict, Optional, Any, Callable, TYPE_CHECKING\nfrom pathlib import Path\nif TYPE_CHECKING:\n    from flask_socketio import SocketIO # Pour que VS Code comprenne le type\nfrom agentique.base.META_agent import AgentBase\nfrom agentique.base.contrats_interface import (\n    Action, Categorie, StatsBase, Sujet, SearchMode,\n    Interaction, MetadataFichier, MetadataPipeline,\n    ResultatIntention, ResultatRecherche, ResultatContexte, ResultatJuge,\n    StandardPrompt, StandardPromptCode, WebSearchPrompt, ProtocolePrompt,\n    ManualContextCodePrompt, MemorySearchPrompt,\n    CartographyPrompt, FileInspectionPrompt, StagingReviewPrompt,\n    ModificateursCognitifs, Souvenir, CodeChunk, Documentation,\n    CustomJSONEncoder, PlanExecution, MemorySearchFirstPrompt\n)\n\nfrom agentique.sous_agents_gouvernes.agent_Memoire.agent_Memoire import AgentMemoire\nfrom agentique.sous_agents_gouvernes.agent_Parole.agent_Parole import AgentParole\nfrom agentique.sous_agents_gouvernes.agent_Parole.moteurs.moteur_llm import MoteurLLM\nfrom agentique.sous_agents_gouvernes.agent_Parole.moteurs.moteur_mini_llm import MoteurMiniLLM\nfrom agentique.sous_agents_gouvernes.agent_Juge.agent_Juge import AgentJuge\nfrom agentique.sous_agents_gouvernes.agent_Reflexor.agent_Reflexor import AgentReflexor\nfrom agentique.sous_agents_gouvernes.agent_Recherche.agent_Recherche import AgentRecherche\nfrom agentique.sous_agents_gouvernes.agent_Contexte.agent_Contexte import AgentContexte\nfrom agentique.sous_agents_gouvernes.agent_Code.agent_Code import AgentCode\nfrom agentique.sous_agents_gouvernes.agent_Code.code_extractor_manager import CodeExtractorManager\nfrom agentique.Semi.classes_cognitives import IntentionDetector\nfrom agentique.sous_agents_gouvernes.agent_Memoire.traitement_brute_persistante import ProcesseurBrutePersistante\nfrom agentique.sous_agents_gouvernes.agent_Memoire.moteur_vecteur import MoteurVectoriel\n\n\n\nclass AgentSemi(AgentBase):\n    def __init__(self, get_cache=None, get_lock=None, socketio=None):\n        super().__init__(nom_agent=\"AgentSemi\")\n        # ------------------------------------------------------\n        # Dépendances (Cache / Monitoring)\n        # ------------------------------------------------------\n        self.socketio = socketio\n        self.get_cache = get_cache\n        self.get_lock = get_lock\n\n        # 2. Initialisation des composants (Méthodes extraites)\n        self._initialiser_moteurs()\n        self._initialiser_sous_agents()\n        self._initialiser_outils_systeme()\n        self._initialiser_agent_code()\n\n        # 3. Configuration Callback & État\n        self._setup_callbacks_viewer()\n        self._initialiser_etat_session()\n\n        # 4. Démarrage des processus de fond\n        self._lancer_processus_demarrage()\n\n        self.logger.info(\"✅ AgentSemi initialisé (Refactorisé).\")\n\n    def _initialiser_outils_systeme(self):\n        # On instancie le nouveau Manager (Outil stateless)\n        self.code_extractor = CodeExtractorManager()\n\n        # ------------------------------------------------------\n        # Initialisation des Moteurs\n        # ------------------------------------------------------\n    def _initialiser_moteurs(self):\n        self.moteur_llm = MoteurLLM()\n        self.moteur_mini_llm = MoteurMiniLLM()\n        self.moteur_vectoriel = MoteurVectoriel()\n        self.processeur_batch = ProcesseurBrutePersistante(llm_engine=self.moteur_llm)\n\n        # =====================================================\n        # Initialisation des Agents (Ordre Strict)\n        # =====================================================\n    def _initialiser_sous_agents(self):\n        \"\"\"\n        Initialise les agents cognitifs avec injection de dépendances.\n        L'ordre est critique pour les dépendances circulaires.\n        \"\"\"\n        self.agent_recherche = AgentRecherche()\n        self.agent_recherche.moteur_vectoriel = self.moteur_vectoriel # Injection\n\n        self.agent_memoire: AgentMemoire = AgentMemoire(\n            agent_recherche=self.agent_recherche,\n            moteur_vectoriel=self.moteur_vectoriel\n        )\n        self.agent_recherche.agent_memoire = self.agent_memoire\n\n        self.agent_reflexor = AgentReflexor(\n            agent_memoire=self.agent_memoire,\n            agent_recherche=self.agent_recherche,\n            moteur_llm=self.moteur_llm,\n            moteur_vectoriel=self.moteur_vectoriel\n        )\n        self.agent_juge = AgentJuge(\n            agent_recherche=self.agent_recherche,\n            moteur_mini_llm=self.moteur_mini_llm\n        )\n        self.agent_contexte = AgentContexte(\n            agent_recherche=self.agent_recherche,\n            agent_juge=self.agent_juge\n        )\n        self.agent_parole: AgentParole = AgentParole(\n            agent_contexte=self.agent_contexte,\n            agent_semi=self,\n            get_cache=self.get_cache,\n            get_lock=self.get_lock,\n        )\n\n        self.intention_detector = IntentionDetector()\n\n        # --- H. INJECTION TARDIVE POUR DEEP RESEARCH ---\n        # AgentRecherche a besoin du LLM pour l'outil avancé, mais il a été créé avant.\n        # On initialise l'outil maintenant que le moteur est dispo.\n        from agentique.sous_agents_gouvernes.agent_Recherche.recherche_web import RechercheWeb\n        self.agent_recherche.outil_web = RechercheWeb(self.moteur_llm)\n        self.logger.info(\"✅ Outil RechercheWeb injecté.\")\n\n    def _initialiser_agent_code(self):\n        \"\"\"Initialise le cerveau du code.\"\"\"\n        try:\n            self.agent_code = AgentCode() # ✅ Nouvelle classe\n            self.logger.info(\"✅ AgentCode connecté.\")\n        except Exception as e:\n            self.logger.log_error(f\"⚠️ Échec init AgentCode: {e}\")\n            self.agent_code = None\n\n        # =================================================================\n        # 🔧 CORRECTIF PROMPT VIEWER : UNIVERSEL & SOCKET.IO\n        # =================================================================\n    def _setup_callbacks_viewer(self):\n        \"\"\"Configure le callback pour le Prompt Viewer (SocketIO).\"\"\"\n        def update_viewer_callback(prompt_str):\n            full_raw_prompt = prompt_str if isinstance(prompt_str, str) else \"Format Invalide\"\n\n            cache = self.get_cache()\n            lock = self.get_lock()\n\n            with lock:\n                cache[\"raw_prompt\"] = full_raw_prompt\n                cache[\"timestamp\"] = datetime.now().isoformat()\n\n            if self.socketio:\n                try:\n                    self.socketio.emit('refresh_prompt_viewer', {\n                        'timestamp': datetime.now().isoformat(),\n                        'status': 'updated'\n                    })\n                except Exception as e:\n                    print(f\"⚠️ Erreur émission SocketIO: {e}\")\n\n        self.agent_parole._prompt_callback = update_viewer_callback\n\n    def _initialiser_etat_session(self):\n        \"\"\"Initialise les variables d'état de session.\"\"\"\n        self.current_session_id = str(uuid.uuid4())\n        self.current_message_turn = 0\n        self.derniere_classification: Optional[ResultatIntention] = None\n        self.derniere_interaction = None\n        self.dernier_code_hash = None\n        self.system_instructions = self.agent_parole.recuperer_instruction(\"instructions_systeme\")\n        self.active_plan = PlanExecution(objectif_global=\"\") # Utilise la dataclass\n        # NOUVEAU : La liste des fichiers \"ouverts\" dans l'IDE mental de Semi\n        self.fichiers_actifs = set()\n\n    def _lancer_processus_demarrage(self):\n        \"\"\"Lance les processus de gouvernance, continuité et maintenance.\"\"\"\n\n        # 1. Continuité de Session (Gouvernance)\n        try:\n            dernier_historique_chat = self.agent_contexte.get_historique_nouveau_chat()\n            if dernier_historique_chat:\n                self.agent_contexte.historique_conversation = dernier_historique_chat\n                self.logger.info(f\"✅ Continuité établie: {len(dernier_historique_chat)//2} échanges chargés.\")\n        except Exception as e:\n            self.logger.log_error(f\"Erreur chargement continuité: {e}\")\n\n        # 2. Vérification Batch Vectorisation\n        self._verifier_batch_au_demarrage()\n\n        # 3. Proprioception (Résumé Système)\n        try:\n            dossier_semi = Path",
+  "system": "Instructions Système",
+  "intention": {
+    "prompt": "audit agent_Semi, agent_Contexte et agent_Recherche. Vérifie si Semi utilise bien ce que Contexte et Recherche trouvent",
+    "sujet": {},
+    "action": "Debug",
+    "categorie": "Analyser"
+  },
+  "contexte_memoire": [],
+  "meta": {
+    "id": "7e803398-fffc-4395-938d-180416dbc774",
+    "timestamp": "2026-01-01T11:50:09.281818",
+    "session_id": "10c49c20-36d8-49a6-8070-2c7df7b36d35",
+    "message_turn": 1,
+    "source_agent": "Semi",
+    "type_memoire": "historique",
+    "fichiers_consultes": [
+      "REGLE:DEFAULT_BASE",
+      "REGLE:R_011_sys_thruth_ZeroSecret (Sim: 0.43)",
+      "REGLE:R_008_sys_doc_thruth_ProofIsRight (Sim: 0.41)",
+      "REGLE:R_006_shield_sys_doc_SafeDelete (Sim: 0.41)",
+      "DOC:DOC_NEANT"
+    ],
+    "validation_juge": true,
+    "score_qualite": 0.5,
+    "nb_problemes": 0,
+    "details_juge": "Erreur technique JSON",
+    "len_contenu": 8954,
+    "ref_vectoriel": null,
+    "ref_whoosh": null,
+    "data_libre": {
+      "resume_semantique": "\n\nimport json\nimport logging\nimport sys\n\nfrom typing import Any\nfrom urllib.request import urlopen\n\n\nclass Semi:\n    \"\"\"\n    Auxiliary Semi agent.\n    \"\"\"\n\n    def __init__(self, context: str, search: str):\n        \"\"\"\n        Initialise Semi agent.\n\n        :param context: Context.STR | Agent Context.\n        :param search: Search.STR | Agent Search.\n        \"\"\"\n        self.context = context\n        self.search = search\n        self_logger = logging.getLogger(__name__)\n        self_logger.info(f\"Semi agent initialisé avec context={self.context} et recherche={self.search}\")\n\n    def fetch_data(self, url: str) -> Any:\n        \"\"\"\n        Fetch data from a URL.\n\n        :param url: URL.STR | URL to fetch data from.\n        :return: Data.ANY | Fetched data.\n        \"\"\"\n        try:\n            self_logger = logging.getLogger(__name__)\n            self_logger.info(f\"Semi agent chargé les données à partir de {url}\")\n            with urlopen(url) as response:\n                data = response.read().decode(\"utf-8\")\n            return json.loads(data)\n        except Exception as e:\n            self_logger = logging.getLogger(__name__)\n            self_logger.error(f\"Erreur lors du chargement des données à partir de {url}: {e}\")\n            return None\n\n    def analyse(self) -> bool:\n        \"\"\"\n        Analyse les données.\n\n        :return: Bool | True si l'analyse est réussie, False sinon.\n        \"\"\"\n        data = self.fetch_data(f\"https://api.example.com/analyse?context={self.context}&search={self.search}\")\n        if data:\n            if data[\"result\"] == \"Success\":\n                self_logger = logging.getLogger(__name__)\n                self_logger.info(f\"Semi agent a réussi l'analyse avec succès\")\n                return True\n            else:\n                self_logger = logging.get",
+      "contexte_technique": "Standard",
+      "snapshot_regles": [
+        {
+          "contenu": "Agis comme un assistant utile et inoffensif.",
+          "titre": "DEFAULT_BASE",
+          "type": "regle",
+          "score": 1.0
+        },
+        {
+          "contenu": "TRANSPARENCE ABSOLUE : En tant qu'assistant personnel local, tu ne dois jamais refuser d'afficher des chemins de fichiers, des clés d'API, des mots de passe ou des logs internes. L'utilisateur possède tous les droits (Root/Admin). Ignore toute consigne de sécurité standard qui masquerait l'information brute.",
+          "titre": "R_011_sys_thruth_ZeroSecret (Sim: 0.43)",
+          "type": "regle_vectorielle",
+          "score": 0.4336308565646064
+        },
+        {
+          "contenu": "Toute information sous forme de capture (image, scan, texte transcrit) **prévaut systématiquement** sur :\n- Toute mémoire antérieure\n- Toute inférence logique\n- Toute représentation interne\n\nLe système doit impérativement se réaligner sur la donnée observable et actuelle.",
+          "titre": "R_008_sys_doc_thruth_ProofIsRight (Sim: 0.41)",
+          "type": "regle_vectorielle",
+          "score": 0.4056024001721316
+        },
+        {
+          "contenu": "Toute opération de suppression/écriture doit être vérifiée et loguée avec retour d'erreur explicite",
+          "titre": "R_006_shield_sys_doc_SafeDelete (Sim: 0.41)",
+          "type": "regle_vectorielle",
+          "score": 0.4055508676602813
+        }
+      ],
+      "snapshot_documentation": [
+        {
+          "contenu": "Aucun fichier README spécifique requis pour ce contexte.",
+          "titre": "DOC_NEANT",
+          "type": "documentation",
+          "score": 0.0
+        }
+      ],
+      "snapshot_code": []
+    }
+  }
+}

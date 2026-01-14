@@ -1,0 +1,57 @@
+# ===============================================
+# SECTION 1 : DASHBOARD (Mis à jour par script)
+# ===============================================
+# Cette section est le "tableau de bord" de l'agent. Son contenu sera
+# entièrement écrasé et mis à jour par le script 'synchronisation_stats.py'.
+# Ne modifiez pas cette section manuellement.
+
+dashboard_stats:
+  derniere_mise_a_jour: '2026-01-07 17:43:22'
+  appels_total: 7
+  erreurs_total: 0
+  taux_de_succes: 100.00%
+  specifiques:
+    appels_pertinence_total: 6
+    appels_coherence_total: 0
+    coherence_moyenne: 0.95
+    echecs_coherence_total: 0
+    appels_calculer_pertinence_semantique: 6
+    appels_evaluer_coherence_reponse: 1
+configuration:
+  # === SÉCURITÉ & LIMITES LLM ===
+  max_chars_contexte: 6000      # Plafond avant troncature
+  min_chars_contexte: 10         # Clause de garde: contexte vide si < 10 chars
+  marge_prompt_total: 5000      # Marge pour réponse + système
+  timeout_mini_llm: 60          # Timeout de la requête HTTP
+
+  # === ALGORITHME DE PERTINENCE ===
+  pertinence:
+    boost_titre: 1.5            # Multiplicateur pour match titre
+    bonus_sujet: 0.20           # Bonus si le sujet match le contenu
+    stop_words: ["le", "la", "les", "de", "du", "des", "un", "une", "et", "ou", "est", "sont", "pour", "par", "sur", "dans", "avec", "sans", "qui", "que", "quoi", "comment", "the", "a", "an", "of", "in", "on", "with", "for", "is", "are", "to", "it"]
+
+# === SEUILS DE DÉCISION ===
+  decision:
+    # Score (0.0 - 1.0) au-dessus duquel le juge valide la réponse
+    seuil_validation: 0.60
+    # Score de confiance minimal pour accepter un résultat
+    seuil_confiance: 0.5
+    # Seuils pour déclencher une alerte de ré-entraînement
+    entrainement:
+      score_min_acceptable: 0.5
+      taux_erreur_max_pourcent: 20.0
+
+  # Poids des différents critères lors de l'évaluation d'un item
+  # La somme n'a pas besoin d'être égale à 1, le score est normalisé.
+  criteres_evaluation:
+    coherence: 1.0
+    pertinence: 1.0
+    completude: 1.0
+    clarte: 1.0
+
+  # Paramètres pour détecter si le système a besoin d'un ré-entraînement
+  seuils_entrainement:
+    score_min_acceptable: 0.5     # Score moyen en dessous duquel une alerte est levée
+    taux_erreur_max: 20.0         # Taux d'erreur global (en %) maximum toléré
+    nb_evaluations_avant_signal: 100 # Nombre d'évaluations avant de vérifier les tendances
+    score_degradation: 0.15       # Baisse significative du score moyen qui déclenche une alerte critique
