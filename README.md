@@ -1,4 +1,4 @@
-⚠️ International Recruiters / English Version For the complete architectural documentation and research artifacts in English, please visit the primary repository: SecondMind_portfolio_EN.
+
 <div align="center">
 
   <img src="Images/SecondMind_PosterPromo.jpg" width="400" alt="Poster Promo">
@@ -82,8 +82,6 @@ Ce système a évolué par itérations rapides, passant d'un moteur purement sym
 - [ ] **Next Step** : Extension de la scalabilité horizontale vers l'analyse d'image (`agent_Vision`).
 
 </details>
-
-[🔍 Origine du Projet : Du Cerveau Symbolique aux LLM > Découvrez comment SecondMind est né comme une architecture déterministe (ConceptNet, Lesk, CFG) avant d'intégrer les modèles probabilistes.](./README_pipeline_symbolique_cognitif.md)
 
 ---
 
@@ -192,75 +190,67 @@ Le système ne repose pas sur un prompt unique, mais sur une délégation de tâ
 
 ![Tableau des agents](Images/tableau_des_dependences.drawio.png)
 
-#### 🤖 [Agent_Semi.py](Docs/agents/README_agent_Semi.md)
+#### 🤖 [Agent_Semi.py](Agentique/agent_Semi/agent_Semi.py) | [Spécifications](Docs/agents/README_agent_Semi.md)
 **L'agent officiel de SEcondMInd, orchestrateur central.**
 * **Responsabilité primaire** : Il est le "Hub" de décision. C'est lui qui reçoit l'intention de l'utilisateur et coordonne les autres agents pour construire la réponse finale.
 * **Philosophie** : Centralisation de la volonté, décentralisation de l'exécution.
 
-#### 🛡️ [Agent_Auditor.py](Docs/agents/README_agent_Auditor.md)
-
+#### 🛡️ [Agent_Auditor.py](Agentique/agent_Auditor/agent_Auditor.py) | [Spécifications](Docs/agents/README_agent_Auditor.md)
 * **Responsabilité primaire** : Garantir l'intégrité technique, la sécurité du code et la conformité stricte des contrats de données à travers tout le système.
 * **Ce qu’il ne fait jamais** :
     * Il ne modifie jamais la logique métier ou le comportement décisionnel des autres agents.
     * Il n'autorise jamais d'actions destructives sur les répertoires sanctuarisés sans preuve de rotation de backup.
 
-#### 💻 [Agent_Code.py](Docs/agents/README_agent_Code.md)
+#### 💻 [Agent_Code.py](Agentique/agent_Code/agent_Code.py) | [Spécifications](Docs/agents/README_agent_Code.md)
 * **Responsabilité primaire** : Orchestrer l'accès à l'intelligence du code source via un système hybride de recherche et d'indexation pour permettre la compréhension de bases de code complexes.
 * **Ce qu’il ne fait jamais** :
     * Il n'exécute jamais de tests unitaires ou de code en temps réel.
     * Il ne modifie jamais les fichiers sources directement.
     * Il ne doit jamais deviner une structure de code sans interroger l'index.
 
-#### 🧠 [Agent_Contexte.py](Docs/agents/README_agent_Contexte.md)
-
+#### 🧠 [Agent_Contexte.py](Agentique/agent_Contexte/agent_Contexte.py) | [Spécifications](Docs/agents/README_agent_Contexte.md)
 * **Responsabilité primaire** : Orchestrer la récupération, le filtrage et le formatage intelligent du contexte (mémoire, règles et historique) pour prévenir l'amnésie conversationnelle.
 * **Ce qu’il ne fait jamais** :
     * Il n'effectue jamais de recherche vectorielle brute lui-même (il délègue cette tâche).
     * Il ne prend jamais de décision finale sur la réponse à fournir à l'utilisateur.
     * Il ne doit jamais inventer des règles qui ne figurent pas dans le système.
 
-#### ⚖️ [Agent_Juge.py](Docs/agents/README_agent_Juge.md)
-
+#### ⚖️ [Agent_Juge.py](Agentique/agent_Juge/agent_Juge.py) | [Spécifications](Docs/agents/README_agent_Juge.md)
 * **Responsabilité primaire** : Évaluer la qualité et la fiabilité factuelle des informations du système en agissant comme un arbitre impitoyable de la pertinence et de la cohérence.
 * **Ce qu’il ne fait jamais** :
     * Il n'invente jamais de faits pour combler les lacunes du contexte.
     * Il ne génère jamais de réponses conversationnelles destinées à l'utilisateur final.
     * Il ne doit jamais adoucir un verdict négatif pour des raisons de politesse.
 
-#### 🔎 [Agent_Recherche.py](Docs/agents/README_agent_Recherche.md)
-
+#### 🔎 [Agent_Recherche.py](Agentique/agent_Recherche/agent_Recherche.py) | [Spécifications](Docs/agents/README_agent_Recherche.md)
 * **Responsabilité primaire** : Localiser et extraire toute information pertinente (mémoire, code, web) avec une performance quasi-instantanée pour alimenter la réflexion du système.
 * **Ce qu’il ne fait jamais** :
     * Il n'altère ni ne supprime jamais les fichiers indexés.
     * Il ne génère jamais de contenu sans source (c'est un agent de preuves).
     * Il ne doit jamais deviner le contenu d'un fichier sans le lire explicitement.
 
-#### 🔄 [Agent_Reflexor.py](Docs/agents/README_agent_Reflexor.md)
-
+#### 🔄 [Agent_Reflexor.py](Agentique/agent_Reflexor/agent_Reflexor.py) | [Spécifications](Docs/agents/README_agent_Reflexor.md)
 * **Responsabilité primaire** : Analyser les incidents et les feedbacks utilisateur pour assurer l'auto-correction comportementale et l'amélioration continue du système.
 * **Ce qu’il ne fait jamais** :
     * Il ne tente jamais de justifier une erreur auprès de l'utilisateur.
     * Il ne modifie jamais directement les agents exécutifs sans passer par la journalisation réflexive.
     * Il ne doit jamais effacer ou masquer des erreurs commises par le système.
 
-#### 📝 [Agent_Parole.py](Docs/agents/README_agent_Parole.md)
-
+#### 📝 [Agent_Parole.py](Agentique/agent_Parole/agent_Parole.py) | [Spécifications](Docs/agents/README_agent_Parole.md)
 * **Responsabilité primaire** : Construire le prompt ChatML final en assemblant dynamiquement les variables système, le profil utilisateur et le contexte métier pour guider le LLM.
 * **Ce qu’il ne fait jamais** :
     * Il n'invente jamais de contenu, agissant comme un pur constructeur de structure.
     * Il ne communique jamais directement avec le moteur LLM.
     * Il ne doit jamais modifier le ton ou l'identité de Semi.
 
-#### 🎓 [Agent_Entraineur.py](Docs/agents/README_agent_Entraineur.md)
-
+#### 🎓 [Agent_Entraineur.py](Agentique/agent_Entraineur/agent_Entraineur.py) | [Spécifications](Docs/agents/README_agent_Entraineur.md)
 * **Responsabilité primaire** : Superviser l'apprentissage du système en fusionnant les jeux de données et en entraînant les classifieurs d'intentions (SBERT).
 * **Ce qu’il ne fait jamais** :
     * Il n'entraîne jamais le modèle de base (SentenceTransformer), mais se concentre uniquement sur les têtes de classification.
     * Il ne déploie jamais les modèles si la précision de validation est jugée insuffisante.
     * Il ne doit jamais être utilisé pour classifier des intentions en temps réel.
 
-#### 💾 [Agent_Memoire.py](Docs/agents/README_agent_Memoire.md)
-
+#### 💾 [Agent_Memoire.py](Agentique/agent_Memoire/agent_Memoire.py) | [Spécifications](Docs/agents/README_agent_Memoire.md)
 * **Responsabilité primaire** : Gérer de manière autonome le cycle de vie de la mémoire persistante en assurant la capture, le stockage et l'indexation de toutes les données du système.
 * **Ce qu’il ne fait jamais** :
     * Il ne supprime jamais de données sans une directive explicite de gouvernance.
@@ -317,31 +307,31 @@ Le flux de données de SecondMind n'est pas une simple suite d'appels API, mais 
 
 ### 4.1 [Routage Sémantique & Détection d'Intention](Docs/README_nommage_semantique.md)
 Tout commence par l'identification de ce que l'utilisateur veut réellement faire. Plutôt que de lancer des recherches coûteuses à l'aveugle, le système qualifie la demande instantanément.
-* **[IntentionDetector](Docs/Systeme/README_intention_detector.md) : Un classifieur local léger (SBERT) analyse le prompt sur trois axes : Sujet, Action et Catégorie.
+* **[IntentionDetector](Agentique/intention_detector.py)** | [Spécifications](Docs/Systeme/README_intention_detector.md) : Un classifieur local léger (SBERT) analyse le prompt sur trois axes : Sujet, Action et Catégorie.
 * **Classification Tri-Axe** : Le nommage sémantique permet de générer des noms de fichiers indexables, transformant le système de fichiers en un index primaire résolu en ~10ms.
 
 ### 4.2 [RAG Hybride & Stratégies de Recherche](Docs/README_RAG_Memoire.md) | [Spécifications](Docs/Systeme/README_memoire.md)
 Une fois l'intention connue, le système active ses moteurs de recherche spécialisés pour construire un contexte "Zero-Hallucination".
-* **[Agent_Recherche](Docs/Systeme/README_recherche_memoire.md) : Une cascade de filtrage combinant **Everything** (fichiers), **Whoosh** (full-text) et **FAISS** (vectoriel) pour une latence totale de 80ms.
+* **[Agent_Recherche](Agentique/agent_Recherche/agent_Recherche.py)** | [Spécifications](Docs/Systeme/README_recherche_memoire.md) : Une cascade de filtrage combinant **Everything** (fichiers), **Whoosh** (full-text) et **FAISS** (vectoriel) pour une latence totale de 80ms.
 * **[LiveDocs RAG](Docs/README_livedocs_rag.md)** : Un micro-service dédié (Port 5000) qui scrape et vectorise la Docs officielle en temps réel pour contrer le *Knowledge Cutoff* des modèles.
 
 ### 4.3 [RAG Code : Analyse Sémantique & Graphe de Dépendances](Docs/README_RAG_Code.md) | [Spécifications](Docs/Systeme/README_code_extractor_manager.md) | [Spécifications](Docs/Systeme/README_moteur_vecteur_code.md) | [Spécifications](Docs/Systeme/README_outil_cycle_de_dependances.md)
 Pour les requêtes techniques, le système passe d'un RAG textuel à une analyse de structure de code.
-* **[Agent_Code](Docs/Agents/README_agent_Code.md)** : Ce moteur utilise l'analyse AST pour extraire des unités logiques et expandre le contexte via le graphe de dépendances au lieu de simples fragments textuels.
+* **[Agent_Code](Agentique/agent_Code/agent_Code.py)** : Ce moteur utilise l'analyse AST pour extraire des unités logiques et expandre le contexte via le graphe de dépendances au lieu de simples fragments textuels.
 * **Expansion de Contexte** : Le système ne lit pas seulement un fichier, il comprend ses imports et ses appels pour fournir au LLM une vue d'ensemble du projet.
 * **[Scoring de Pertinence](Docs/README_scoring_pertinence.md)** : L'AgentJuge utilise un calcul de couverture (Recall) pour s'assurer que les documents fournis répondent précisément à chaque mot-clé du prompt.
 
-### 4.4 Gouvernance Technique & Audit des Flux
+### 4.4 [Gouvernance Technique & Audit des Flux](Docs/README_section_agent_auditor.md)
 La sécurité et la fiabilité sont garanties par un audit continu de l'intégrité du système.
-* **[Agent_Auditor](Docs/README_section_agent_auditor.md)** : Ce gardien utilise l'analyse statique pour vérifier la conformité aux contrats d'interface et détecter toute dérive architecturale.
-* **[Agent_Juge](Docs/Agents/README_agent_Juge.md)** : Chaque réponse subit une évaluation de cohérence avec un seuil de rejet strict à 0.6. Si le score est insuffisant, le flux est interrompu (Fail-Fast).
+* **[Agent_Auditor](Agentique/agent_Auditor/agent_Auditor.py)** : Ce gardien utilise l'analyse statique pour vérifier la conformité aux contrats d'interface et détecter toute dérive architecturale.
+* **[Agent_Juge](Agentique/agent_Juge/agent_Juge.py)** : Chaque réponse subit une évaluation de cohérence avec un seuil de rejet strict à 0.6. Si le score est insuffisant, le flux est interrompu (Fail-Fast).
 
 ### 4.5 [Ingénierie du Prompt & Architecture du Comportement](config/config_parole.yaml)
-Dans SecondMind, le prompt n'est pas un texte statique, mais un environnement dynamique construit par l'**[AgentParole](Docs/Agents/README_agent_Parole.md)**. Ce module assure que le LLM reste aligné avec les contraintes du système, même avec une fenêtre de contexte massive.
+Dans SecondMind, le prompt n'est pas un texte statique, mais un environnement dynamique construit par l'**[AgentParole](Agentique/agent_Parole/agent_Parole.py)**. Ce module assure que le LLM reste aligné avec les contraintes du système, même avec une fenêtre de contexte massive.
 
 ### 4.6 Supervision & Cycle de Vie de la Donnée
 La réponse générée n'est jamais livrée sans contrôle. Elle est ensuite mémorisée pour enrichir l'intelligence future du système.
-* **[Consolidation Mémoire](Docs/README_consolidation_memoire.md)** : Après 4h d'inactivité, le **[ProcesseurBrutePersistante](Docs/Systeme/README_traitement_brute_persistante.md)** | [Spécifications](Docs/Systeme/README_traitement_brute_persistante.md) transforme les échanges fragmentés en résumés vectorisés cohérents.
+* **[Consolidation Mémoire](Docs/README_consolidation_memoire.md)** : Après 4h d'inactivité, le **[ProcesseurBrutePersistante](Agentique/agent_Memoire/traitement_brute_persistante.py)** | [Spécifications](Docs/Systeme/README_traitement_brute_persistante.md) transforme les échanges fragmentés en résumés vectorisés cohérents.
 
 ---
 
@@ -394,7 +384,7 @@ Pour briser la "confiance obstinée" des LLM lors d'une hallucination, j'ai con�
 
 * **Injection Prioritaire (Score 999.0)** : Dès la détection du signal par l'orchestrateur (`AgentSemi._gerer_commandes_systeme`), un artefact mémoriel de type "Règle" est injecté avec une priorité absolue, écrasant les instructions précédentes pour imposer un mode "Doute Structuré".
 * **Méthodologie de Débogage Imposée** : Le système suspend sa logique et suit un protocole strict : vérification de la syntaxe avant la logique, remise en question des hypothèses et demande de validation humaine étape par étape.
-* **Analyse Post-Mortem (Thread séparé)** : En parallèle, l'**[AgentReflexor](Docs/Agents/README_agent_Reflexor.md)** lance une analyse en arrière-plan pour identifier la cause racine de l'erreur et générer une règle de correction comportementale permanente.
+* **Analyse Post-Mortem (Thread séparé)** : En parallèle, l'**[AgentReflexor](Agentique/agent_Reflexor/agent_Reflexor.py)** lance une analyse en arrière-plan pour identifier la cause racine de l'erreur et générer une règle de correction comportementale permanente.
 
 ### 5.2 [AgentAuditor : Gardien de l'Intégrité Technique](Docs/README_section_agent_auditor.md)
 La gouvernance ne s'arrête pas au comportement, elle s'applique aussi au code lui-même via l'analyse statique (AST).
@@ -444,7 +434,7 @@ Le système s'améliore sans intervention manuelle grâce à la collecte et à l
 * **Journal de Doute Réflexif** : Chaque incident est consigné dans le `journal_de_doute_reflexif.md`, vectorisé et indexé pour remonter en priorité dans le RAG lors de situations similaires futures.
 
 ### 5.4 [Stratégie de Test : Isolation & Co-localisation](Docs/README_testing_strategy.md)
-[![Validation Qualité](https://img.shields.io/badge/Consulter_un_exemple_de_Test-yellow?style=for-the-badge&logo=githubactions&logoColor=white)](Docs/Agents/agent_Juge_UNITTEST.py)
+[![Validation Qualité](https://img.shields.io/badge/Consulter_un_exemple_de_Test-yellow?style=for-the-badge&logo=githubactions&logoColor=white)](Agentique/agent_Juge/agent_Juge_UNITTEST.py)
 
 <blockquote>
   <p>L'intégralité de la suite de tests est répartie au sein des dossiers agents. Chaque module agent_*.py dispose de son homologue agent_*_UNITTEST.py garantissant une couverture fonctionnelle de 100% sur la logique d'orchestration. </p>
@@ -543,7 +533,7 @@ Un environnement de développement complet où l'IA n'est pas un simple chat, ma
 </div>
 Outil critique pour le debug, il permet de voir exactement ce que le LLM reçoit avant de générer une réponse.
 * **Transparence du Pipeline** : Affiche le prompt ChatML brut incluant les instructions système, les règles prioritaires (Protocole ALERTE), le contexte RAG et l'historique.
-* **Synchronisation Temps Réel** : Grâce à un mécanisme de callback dans l'**[AgentParole](Docs/Agents/README_agent_Parole.md)**, le viewer se met à jour à chaque tour de pensée.
+* **Synchronisation Temps Réel** : Grâce à un mécanisme de callback dans l'**[AgentParole](Agentique/agent_Parole/agent_Parole.py)**, le viewer se met à jour à chaque tour de pensée.
 
 ### 7.5 [Backend Orchestral : interface_backend_hermes.py](interfaces/interface_backend_hermes.py) | [Spécifications](Docs/Systeme/README_interface_backend_hermes.md)
 Toutes les interfaces convergent vers un backend unique qui garantit le respect de la gouvernance.
