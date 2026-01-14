@@ -83,20 +83,21 @@ Ce système a évolué par itérations rapides, passant d'un moteur purement sym
 
 </details>
 
----
+>⚠️ **IMPORTANT**
 
-> [!IMPORTANT]
->
+
+
 > **Note sur l'accès au code source :** Ce dépôt suit une stratégie "Interface-Public / Core-Private".
-
-> Public : Architecture globale, contrats d'interface, documentation technique complète (READMEs) et suites de tests unitaires.
-
-> Privé : Logique métier des agents et implémentations neuronales.
-
-Le code source complet est disponible pour une revue technique approfondie sur demande lors du processus de recrutement.
+>
+> **Public :** Architecture globale, contrats d'interface, documentation technique complète (READMEs) et suites de tests unitaires.
+>
+> **Privé :** Logique métier des agents et implémentations neuronales.
+>
+> Le code source complet est disponible pour une revue technique approfondie sur demande lors du processus de recrutement.
 
 
 <details>
+
 <summary><b>📬 Contact</b></summary>
 
 <div align="center">
