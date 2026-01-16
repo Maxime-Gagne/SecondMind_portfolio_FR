@@ -173,7 +173,6 @@ SecondMind/
 │   ├── persistante/          # Souvenirs consolidés
 │   ├── reflexive/            # Règles réflexives & Feedbacks utilisateur
 │   └── vectorielle/          # Interactions résumées et vectorisées
-├── ⚙️ config/                # Single Source of Truth, un fichier YAML pour chaque agent
 ├── ✨ interfaces/            # Frontend + Backend
 │   ├── interface_de_chat.html
 │   ├── interface_ide.html
