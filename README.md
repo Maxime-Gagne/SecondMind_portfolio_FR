@@ -83,11 +83,23 @@ Ce système a évolué par itérations rapides, passant d'un moteur purement sym
 
 </details>
 
->⚠️ **IMPORTANT**
+>⚠️ **IMPORTANT: ACCÈS AU CODE SOURCE**
 
 
 
-> **Note sur l'accès au code source :** Ce dépôt suit une stratégie "Interface-Public / Core-Private".
+> **"Interface-Public / Core-Private"**
+> Pour protéger la propriété intellectuelle tout en démontrant la qualité architecturale, j'ai rendu publics les **3 piliers fondamentaux** de ma gouvernance. Cliquez pour consulter le code brut :
+>
+> 1. 🛠️ **[META_agent.py (Métaprogrammation)](metabase/META_agent.py)**
+>    *Implémentation de l'injection automatique de dépendances et de l'auto-instrumentation (Zéro-Boilerplate).*
+>
+> 2. 🛡️ **[auditor_base.py (Analyse Statique / AST)](metabase/auditor_base.py)**
+>    *Moteur de gouvernance qui valide l'intégrité du code et interdit la dette technique au runtime.*
+>
+> 3. 📜 **[contrats_interface.py (Typage Strict)](metabase/contrats_interface.py)**
+>    *Définition des protocoles de communication inter-agents assurant la cohérence du système.*
+>
+> *Le reste de la logique métier (Agents neuronaux, RAG Tri-Moteur) est maintenu en dépôt privé, mais disponible pour audit technique sur demande.*
 >
 > **Public :** Architecture globale, contrats d'interface, documentation technique complète (READMEs) et suites de tests unitaires.
 >
@@ -173,7 +185,6 @@ SecondMind/
 │   ├── persistante/          # Souvenirs consolidés
 │   ├── reflexive/            # Règles réflexives & Feedbacks utilisateur
 │   └── vectorielle/          # Interactions résumées et vectorisées
-├── ⚙️ config/                # Single Source of Truth, un fichier YAML pour chaque agent
 ├── ✨ interfaces/            # Frontend + Backend
 │   ├── interface_de_chat.html
 │   ├── interface_ide.html
