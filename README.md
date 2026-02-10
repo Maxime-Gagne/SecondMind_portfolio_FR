@@ -166,65 +166,31 @@ Le système ne repose pas sur un prompt unique, mais sur une délégation de tâ
 
 #### 🛡️ [Agent_Auditor.py](Agentique/agent_Auditor/agent_Auditor.py) | [Spécifications](Docs/Agents/README_agent_Auditor.md)
 * **Responsabilité primaire** : Garantir l'intégrité technique, la sécurité du code et la conformité stricte des contrats de données à travers tout le système.
-* **Ce qu’il ne fait jamais** :
-    * Il ne modifie jamais la logique métier ou le comportement décisionnel des autres agents.
-    * Il n'autorise jamais d'actions destructives sur les répertoires sanctuarisés sans preuve de rotation de backup.
 
 #### 💻 [Agent_Code.py](Agentique/agent_Code/agent_Code.py) | [Spécifications](Docs/Agents/README_agent_Code.md)
 * **Responsabilité primaire** : Orchestrer l'accès à l'intelligence du code source via un système hybride de recherche et d'indexation pour permettre la compréhension de bases de code complexes.
-* **Ce qu’il ne fait jamais** :
-    * Il n'exécute jamais de tests unitaires ou de code en temps réel.
-    * Il ne modifie jamais les fichiers sources directement.
-    * Il ne doit jamais deviner une structure de code sans interroger l'index.
 
 #### 🧠 [Agent_Contexte.py](Agentique/agent_Contexte/agent_Contexte.py) | [Spécifications](Docs/Agents/README_agent_Contexte.md)
 * **Responsabilité primaire** : Orchestrer la récupération, le filtrage et le formatage intelligent du contexte (mémoire, règles et historique) pour prévenir l'amnésie conversationnelle.
-* **Ce qu’il ne fait jamais** :
-    * Il n'effectue jamais de recherche vectorielle brute lui-même (il délègue cette tâche).
-    * Il ne prend jamais de décision finale sur la réponse à fournir à l'utilisateur.
-    * Il ne doit jamais inventer des règles qui ne figurent pas dans le système.
+
 
 #### ⚖️ [Agent_Juge.py](Agentique/agent_Juge/agent_Juge.py) | [Spécifications](Docs/Agents/README_agent_Juge.md)
 * **Responsabilité primaire** : Évaluer la qualité et la fiabilité factuelle des informations du système en agissant comme un arbitre impitoyable de la pertinence et de la cohérence.
-* **Ce qu’il ne fait jamais** :
-    * Il n'invente jamais de faits pour combler les lacunes du contexte.
-    * Il ne génère jamais de réponses conversationnelles destinées à l'utilisateur final.
-    * Il ne doit jamais adoucir un verdict négatif pour des raisons de politesse.
 
 #### 🔎 [Agent_Recherche.py](Agentique/agent_Recherche/agent_Recherche.py) | [Spécifications](Docs/Agents/README_agent_Recherche.md)
 * **Responsabilité primaire** : Localiser et extraire toute information pertinente (mémoire, code, web) avec une performance quasi-instantanée pour alimenter la réflexion du système.
-* **Ce qu’il ne fait jamais** :
-    * Il n'altère ni ne supprime jamais les fichiers indexés.
-    * Il ne génère jamais de contenu sans source (c'est un agent de preuves).
-    * Il ne doit jamais deviner le contenu d'un fichier sans le lire explicitement.
 
 #### 🔄 [Agent_Reflexor.py](Agentique/agent_Reflexor/agent_Reflexor.py) | [Spécifications](Docs/Agents/README_agent_Reflexor.md)
 * **Responsabilité primaire** : Analyser les incidents et les feedbacks utilisateur pour assurer l'auto-correction comportementale et l'amélioration continue du système.
-* **Ce qu’il ne fait jamais** :
-    * Il ne tente jamais de justifier une erreur auprès de l'utilisateur.
-    * Il ne modifie jamais directement les agents exécutifs sans passer par la journalisation réflexive.
-    * Il ne doit jamais effacer ou masquer des erreurs commises par le système.
 
 #### 📝 [Agent_Parole.py](Agentique/agent_Parole/agent_Parole.py) | [Spécifications](Docs/Agents/README_agent_Parole.md)
 * **Responsabilité primaire** : Construire le prompt ChatML final en assemblant dynamiquement les variables système, le profil utilisateur et le contexte métier pour guider le LLM.
-* **Ce qu’il ne fait jamais** :
-    * Il n'invente jamais de contenu, agissant comme un pur constructeur de structure.
-    * Il ne communique jamais directement avec le moteur LLM.
-    * Il ne doit jamais modifier le ton ou l'identité de Semi.
 
 #### 🎓 [Agent_Entraineur.py](Agentique/agent_Entraineur/agent_Entraineur.py) | [Spécifications](Docs/Agents/README_agent_Entraineur.md)
 * **Responsabilité primaire** : Superviser l'apprentissage du système en fusionnant les jeux de données et en entraînant les classifieurs d'intentions (SBERT).
-* **Ce qu’il ne fait jamais** :
-    * Il n'entraîne jamais le modèle de base (SentenceTransformer), mais se concentre uniquement sur les têtes de classification.
-    * Il ne déploie jamais les modèles si la précision de validation est jugée insuffisante.
-    * Il ne doit jamais être utilisé pour classifier des intentions en temps réel.
 
 #### 💾 [Agent_Memoire.py](Agentique/agent_Memoire/agent_Memoire.py) | [Spécifications](Docs/Agents/README_agent_Memoire.md)
 * **Responsabilité primaire** : Gérer de manière autonome le cycle de vie de la mémoire persistante en assurant la capture, le stockage et l'indexation de toutes les données du système.
-* **Ce qu’il ne fait jamais** :
-    * Il ne supprime jamais de données sans une directive explicite de gouvernance.
-    * Il ne modifie jamais les fichiers de configuration ou le code source du projet.
-    * Il ne doit jamais stocker des données temporaires ou volatiles.
 
 ---
 
