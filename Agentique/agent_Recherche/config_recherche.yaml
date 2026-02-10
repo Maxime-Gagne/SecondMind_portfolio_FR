@@ -11,7 +11,6 @@ dashboard_stats:
   erreurs_total: 0
   taux_de_succes: 100.00%
   specifiques:
-    appels_recuperer_historique_brut: 2
     appels_recherche_contexte_memoire_vectorielle: 1
     appels_rechercher_regles: 4
     appels_rechercher_regles_semantiques: 1
@@ -50,7 +49,6 @@ configuration:
     recherche_everything_max: 20    # Scan large
     recherche_vectorielle_top_k: 15 # Scan large vectoriel
     resultats_finaux: 10            # Renvoyé au LLM
-    historique_recent: 5            # Nombre d'échanges
     preview_doc_chars: 500          # Longueur preview (RechercheMemoireTool)
 
 ## ===============================================
